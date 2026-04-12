@@ -37,9 +37,9 @@ pygame.init()
 
 # create screen
 
-WIDTH = 800
+WIDTH = 1920
 WIDTH_ANGLE = 2*math.pi/3 # 120 degrees
-HEIGHT = 600 
+HEIGHT = 1080 
 HEIGHT_ANGLE = math.pi/2 # 90 degrees
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
