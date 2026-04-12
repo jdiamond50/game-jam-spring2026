@@ -15,6 +15,24 @@ def update_rect(sprite):
     ud_display_pos = math.atan(sprite.pos.z / math.sqrt(sprite.pos.x ** 2 + sprite.pos.y ** 2)) * (HEIGHT / HEIGHT_ANGLE) * (-1) + (HEIGHT / 2)
     sprite.rect = sprite.image.get_rect(center=(lr_display_pos, ud_display_pos))
 
+class Cannonball(pygame.sprite.Sprite):
+
+    def __init__(self):
+        super().__init__()
+        self.original_image = pygame.image.load('cannonball.jpg')
+        self.size = 500
+        self.pos = pygame.math.Vector3(0,1,-40)
+        self.vel = pygame.math.Vector3(0,25,25)
+        self.acc = pygame.math.Vector3(0,0,-1)
+        update_rect(self)
+    
+    def update(self):
+        self.pos += self.vel
+        self.vel += self.acc
+        update_rect(self)
+        if self.pos.z < -40: # cannonball hits the water
+            self.kill()
+
 class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
 
     def __init__(self, y_val):
@@ -32,6 +50,7 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
             self.kill()
 
 ships = pygame.sprite.Group()
+cannonballs = pygame.sprite.Group()
 
 pygame.init()
 
@@ -64,7 +83,8 @@ while run:
             if event.key == pygame.K_SPACE:
                 pygame.event.post(pygame.event.Event(CANNON_FIRED_EVENT))
         if event.type == CANNON_FIRED_EVENT:
-            print("cannon_fired")
+            new_cannonball = Cannonball()
+            cannonballs.add(new_cannonball)
     
     if (next_ship_time == 0): # time to create another ship
         new_ship = Ship(random.randint(50, 300))
@@ -73,7 +93,8 @@ while run:
 
     next_ship_time -= 1
 
-    ships.update() # move ships to the right
+    ships.update()
+    cannonballs.update()
 
     # draw stuff
 
@@ -81,6 +102,7 @@ while run:
     pygame.draw.rect(screen, water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
 
     ships.draw(screen)
+    cannonballs.draw(screen)
 
     pygame.display.flip() # update screen
 
