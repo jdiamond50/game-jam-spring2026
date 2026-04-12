@@ -20,17 +20,22 @@ class Cannonball(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.original_image = pygame.image.load('cannonball.jpg')
-        self.size = 500
+        self.size = 100
         self.pos = pygame.math.Vector3(0,1,-40)
-        self.vel = pygame.math.Vector3(0,25,25)
-        self.acc = pygame.math.Vector3(0,0,-1)
+        self.vel = pygame.math.Vector3(0,8,8)
+        self.acc = pygame.math.Vector3(0,0,-0.5)
+        self.fired = False
         update_rect(self)
     
     def update(self):
         self.pos += self.vel
         self.vel += self.acc
+        print("cannonball pos: ", self.pos)
+        if self.pos.z >= 0: 
+            self.fired = True
+            print("set fired to True")
         update_rect(self)
-        if self.pos.z < -40: # cannonball hits the water
+        if self.pos.z < 0 and self.fired: # cannonball hits the water
             self.kill()
 
 class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
@@ -92,7 +97,7 @@ while run:
             event.ship.kill()
     
     if (next_ship_time == 0): # time to create another ship
-        new_ship = Ship(random.randint(50, 300))
+        new_ship = Ship(random.randint(50, 100))
         ships.add(new_ship)
         next_ship_time = random.randint(60,120) # set countdown for next ship
 
@@ -103,9 +108,12 @@ while run:
 
     for cannonball in cannonballs:
         for ship in ships:
-            if ((cannonball.pos - ship.pos).magnitude < 100):
-                ship_hit_data = {"cannonball": cannonball, "ship:": ship}
-                pygame.event.post(SHIP_HIT, ship_hit_data)
+            diff_vec = cannonball.pos - ship.pos
+            if (abs(diff_vec.x) < 10 and abs(diff_vec.y) < 5 and abs(diff_vec.z < 15)):
+                print(cannonball)
+                print(ship)
+                ship_hit_data = {"cannonball": cannonball, "ship": ship}
+                pygame.event.post(pygame.event.Event(SHIP_HIT, ship_hit_data))
 
     # draw stuff
 
