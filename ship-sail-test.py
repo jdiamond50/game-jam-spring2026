@@ -28,8 +28,10 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
     def update(self):
         self.pos += self.vel
         update_rect(self)
-        if self.rect.left > WIDTH: # remove offscreen ships
-            self.kill()
+        if self.pos.x > 60: # pause island ships
+            self.vel = pygame.math.Vector3(0,0,0)
+            
+            
 
 ships = pygame.sprite.Group()
 
@@ -47,15 +49,25 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 sky_color = (0, 157, 255) # light blue
 water_color = (2, 71, 181) # dark blue
+island_color = (6, 64, 43) # dark green
+damage_color = (179, 27, 27) # red
+border_color = (0, 0, 0) # balck
 
 # time stuff
 clock = pygame.time.Clock()
 framerate = 60
 next_ship_time = random.randint(1*framerate, 2*framerate) # [1 second, 2 seconds]
 
+second = -1
+red_island = False # If the island is taking damage this tick
+island_health = 50 # The island starting health
+
 run = True
 while run:
     clock.tick(framerate)
+    second+=1
+    if second >= 60:
+        second = 0
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT: 
@@ -67,9 +79,16 @@ while run:
             print("cannon_fired")
     
     if (next_ship_time == 0): # time to create another ship
-        new_ship = Ship(random.randint(50, 300))
+        new_ship = Ship(random.randint(50,300))
         ships.add(new_ship)
         next_ship_time = random.randint(60,120) # set countdown for next ship
+
+    for ship in ships: # damages the island if a ship has 0 velocity
+        if ship.vel == pygame.math.Vector3(0,0,0) and second == 0:
+            red_island = True
+            island_health -=1
+        elif second >= 5:
+            red_island = False
 
     next_ship_time -= 1
 
@@ -79,6 +98,15 @@ while run:
 
     pygame.draw.rect(screen, sky_color, (0,0,WIDTH, HEIGHT/2))
     pygame.draw.rect(screen, water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
+
+    pygame.draw.rect(screen, border_color, (WIDTH-(WIDTH/3),HEIGHT/5,50*(WIDTH/200), HEIGHT/30))
+
+    if red_island == True: # draws island red or green
+        pygame.draw.polygon(screen, damage_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
+        pygame.draw.rect(screen, damage_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
+    else:
+        pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
+        pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
 
     ships.draw(screen)
 
