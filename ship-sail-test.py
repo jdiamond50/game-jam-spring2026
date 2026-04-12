@@ -55,6 +55,7 @@ cannonballs = pygame.sprite.Group()
 pygame.init()
 
 CANNON_FIRED_EVENT = pygame.event.custom_type()
+SHIP_HIT = pygame.event.custom_type()
 
 # create screen
 
@@ -85,6 +86,10 @@ while run:
         if event.type == CANNON_FIRED_EVENT:
             new_cannonball = Cannonball()
             cannonballs.add(new_cannonball)
+        if event.type == SHIP_HIT:
+            print("ship_hit")
+            event.cannonball.kill()
+            event.ship.kill()
     
     if (next_ship_time == 0): # time to create another ship
         new_ship = Ship(random.randint(50, 300))
@@ -95,6 +100,12 @@ while run:
 
     ships.update()
     cannonballs.update()
+
+    for cannonball in cannonballs:
+        for ship in ships:
+            if ((cannonball.pos - ship.pos).magnitude < 100):
+                ship_hit_data = {"cannonball": cannonball, "ship:": ship}
+                pygame.event.post(SHIP_HIT, ship_hit_data)
 
     # draw stuff
 
