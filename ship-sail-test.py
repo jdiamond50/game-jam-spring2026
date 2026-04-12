@@ -20,7 +20,7 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
     def __init__(self, y_val):
         super().__init__() 
         self.original_image = pygame.image.load('ship.png') 
-        self.size = 1000
+        self.size = 750
         self.pos = pygame.math.Vector3(-2*y_val, y_val, 0) 
         self.vel = pygame.math.Vector3(1,0,0)
         update_rect(self)
