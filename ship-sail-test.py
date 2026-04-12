@@ -35,6 +35,8 @@ ships = pygame.sprite.Group()
 
 pygame.init()
 
+CANNON_FIRED_EVENT = pygame.event.custom_type()
+
 # create screen
 
 WIDTH = 1920
@@ -58,6 +60,11 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: 
             run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                pygame.event.post(pygame.event.Event(CANNON_FIRED_EVENT))
+        if event.type == CANNON_FIRED_EVENT:
+            print("cannon_fired")
     
     if (next_ship_time == 0): # time to create another ship
         new_ship = Ship(random.randint(50, 300))
