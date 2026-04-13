@@ -36,7 +36,7 @@ class Cannonball(pygame.sprite.Sprite):
         super().__init__()
         self.original_image = pygame.image.load('cannonball.jpg')
         self.size = 100
-        self.pos = pygame.math.Vector3(0,1,-40)
+        self.pos = pygame.math.Vector3(0,20,-20) # changed from (0,1,-40)
         init_velocity = 13
         self.vel = pygame.math.Vector3(
             init_velocity*math.cos(cannon.ud_angle)*math.sin(cannon.lr_angle),
@@ -50,6 +50,7 @@ class Cannonball(pygame.sprite.Sprite):
     def update(self):
         self.pos += self.vel
         self.vel += self.acc
+        # print("cannonball pos: ", self.pos)
         if self.pos.z >= 0: 
             self.fired = True
         update_rect(self)
@@ -131,7 +132,8 @@ while run:
     if keys[pygame.K_UP] and cannon.ud_angle < math.pi / 4:
         cannon.ud_angle += math.pi / 180
         print("cannon ud_angle adjusted to ", cannon.ud_angle)
-    if keys[pygame.K_DOWN] and cannon.ud_angle > 0.5:
+    # if keys[pygame.K_DOWN] and cannon.ud_angle > 0.5:
+    if keys[pygame.K_DOWN] and cannon.ud_angle > 0.35:
         cannon.ud_angle -= math.pi / 180
         print("cannon ud_angle adjusted to ", cannon.ud_angle)
     if keys[pygame.K_LEFT] and cannon.lr_angle > -0.95:
@@ -143,6 +145,7 @@ while run:
     
     if (next_ship_time == 0): # time to create another ship
         new_ship = Ship(random.randint(50,300))
+        # new_ship = Ship(50)
         ships.add(new_ship)
         next_ship_time = random.randint(60,120) # set countdown for next ship
 
