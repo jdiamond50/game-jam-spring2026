@@ -109,7 +109,7 @@ framerate = 60
 next_ship_time = random.randint(1*framerate, 2*framerate) # [1 second, 2 seconds]
 
 curr_time = -1 # measured in num frames
-game_time = 15*framerate # total length of the level
+game_time = 60*framerate # total length of the level
 is_red_island = False # If the island is taking damage this tick
 island_health = 50 # The island starting health
 
@@ -141,7 +141,6 @@ while run:
             event.cannonball.kill()
             event.ship.kill()
         if event.type == NIGHTFALL:
-            print("night has fallen")
             for ship in ships:
                 ship.vel = (-0.5,0,0)
                 ship.original_image = pygame.transform.flip(ship.original_image, True, False)
@@ -164,10 +163,8 @@ while run:
     if (next_ship_time == 0 and curr_time < game_time): # time to create another ship
         y_dist = random.randint(50,300)
         new_ship = Ship(y_dist)
-        # new_ship = Ship(50)
         ships.add(new_ship, layer=-y_dist)
-        # next_ship_time = random.randint(60,120) # set countdown for next ship
-        next_ship_time = random.randint(1,30) # set countdown for next ship
+        next_ship_time = random.randint(60,120) # set countdown for next ship
 
     next_ship_time -= 1
 
