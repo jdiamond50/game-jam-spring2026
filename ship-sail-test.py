@@ -72,8 +72,10 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
         update_rect(self)
         if self.pos.x > 70 and curr_time < game_time: # pause island ships
             self.vel = pygame.math.Vector3(0,0,0)      
+        if self.pos.x < -2*self.pos.y: 
+            self.kill()
 
-ships = pygame.sprite.Group()
+ships = pygame.sprite.LayeredUpdates()
 cannonballs = pygame.sprite.Group()
 cannon = Cannon()
 
@@ -106,8 +108,8 @@ framerate = 60
 next_ship_time = random.randint(1*framerate, 2*framerate) # [1 second, 2 seconds]
 
 curr_time = -1 # measured in num frames
-game_time = 10*framerate # total length of the level
-red_island = False # If the island is taking damage this tick
+game_time = 15*framerate # total length of the level
+is_red_island = False # If the island is taking damage this tick
 island_health = 50 # The island starting health
 
 def get_sky_color():
@@ -138,9 +140,10 @@ while run:
             event.cannonball.kill()
             event.ship.kill()
         if event.type == NIGHTFALL:
+            print("night has fallen")
             for ship in ships:
                 ship.vel = (-0.5,0,0)
-                ship.image = pygame.transform.flip(ship.image, True, False)
+                ship.original_image = pygame.transform.flip(ship.original_image, True, False)
     
     keys = pygame.key.get_pressed()
     if keys[pygame.K_UP] and cannon.ud_angle < math.pi / 4:
@@ -158,10 +161,12 @@ while run:
         # print("cannon lr_angle adjusted to ", cannon.lr_angle)
     
     if (next_ship_time == 0 and curr_time < game_time): # time to create another ship
-        new_ship = Ship(random.randint(50,300))
+        y_dist = random.randint(50,300)
+        new_ship = Ship(y_dist)
         # new_ship = Ship(50)
-        ships.add(new_ship)
-        next_ship_time = random.randint(60,120) # set countdown for next ship
+        ships.add(new_ship, layer=-y_dist)
+        # next_ship_time = random.randint(60,120) # set countdown for next ship
+        next_ship_time = random.randint(1,30) # set countdown for next ship
 
     next_ship_time -= 1
 
@@ -171,17 +176,15 @@ while run:
     for ship in ships:
         # island damage if ship has zero velocity
         if ship.vel == pygame.math.Vector3(0,0,0) and curr_time % 60 == 0:
-            red_island = True
+            is_red_island = True
             island_health -=1
         elif curr_time % 60 >= 5:
-            red_island = False
+            is_red_island = False
 
         # ship hit
         for cannonball in cannonballs:
             diff_vec = cannonball.pos - ship.pos
             if (diff_vec.magnitude() < 20):
-                print(cannonball)
-                print(ship)
                 ship_hit_data = {"cannonball": cannonball, "ship": ship}
                 pygame.event.post(pygame.event.Event(SHIP_HIT, ship_hit_data))
 
@@ -194,7 +197,7 @@ while run:
 
     pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2,(50*(WIDTH/200))+4, (HEIGHT/30)+4))
 
-    if red_island == True: # draws island red or green
+    if is_red_island: # draws island red or green
         pygame.draw.polygon(screen, damage_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
         pygame.draw.rect(screen, damage_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
     else:
