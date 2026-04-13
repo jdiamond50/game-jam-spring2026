@@ -4,6 +4,11 @@ import math
 
 display_dist = 20
 
+WIDTH = 1920
+WIDTH_ANGLE = 2*math.pi/3 # 120 degrees
+HEIGHT = 1080 
+HEIGHT_ANGLE = math.pi/2 # 90 degrees
+
 def update_rect(sprite): 
     # image scaling
     scale_factor = display_dist / sprite.pos.magnitude()
@@ -15,6 +20,16 @@ def update_rect(sprite):
     ud_display_pos = math.atan(sprite.pos.z / math.sqrt(sprite.pos.x ** 2 + sprite.pos.y ** 2)) * (HEIGHT / HEIGHT_ANGLE) * (-1) + (HEIGHT / 2)
     sprite.rect = sprite.image.get_rect(center=(lr_display_pos, ud_display_pos))
 
+class Cannon(pygame.sprite.Sprite):
+
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.transform.scale(pygame.image.load('cannon.png'), (400,400))
+        self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect(center=(WIDTH/2, HEIGHT - 200))
+        self.ud_angle = math.pi / 4
+        self.lr_angle = 0
+
 class Cannonball(pygame.sprite.Sprite):
 
     def __init__(self):
@@ -22,7 +37,12 @@ class Cannonball(pygame.sprite.Sprite):
         self.original_image = pygame.image.load('cannonball.jpg')
         self.size = 100
         self.pos = pygame.math.Vector3(0,1,-40)
-        self.vel = pygame.math.Vector3(0,8,8)
+        init_velocity = 13
+        self.vel = pygame.math.Vector3(
+            init_velocity*math.cos(cannon.ud_angle)*math.sin(cannon.lr_angle),
+            init_velocity*math.cos(cannon.ud_angle)*math.cos(cannon.lr_angle), 
+            init_velocity*math.sin(cannon.ud_angle)
+        )
         self.acc = pygame.math.Vector3(0,0,-0.5)
         self.fired = False
         update_rect(self)
@@ -30,11 +50,10 @@ class Cannonball(pygame.sprite.Sprite):
     def update(self):
         self.pos += self.vel
         self.vel += self.acc
-        print("cannonball pos: ", self.pos)
         if self.pos.z >= 0: 
             self.fired = True
-            print("set fired to True")
         update_rect(self)
+        print("cannonball pos: ", self.pos)
         if self.pos.z < 0 and self.fired: # cannonball hits the water
             self.kill()
 
@@ -56,6 +75,7 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
 
 ships = pygame.sprite.Group()
 cannonballs = pygame.sprite.Group()
+cannon = Cannon()
 
 pygame.init()
 
@@ -64,10 +84,6 @@ SHIP_HIT = pygame.event.custom_type()
 
 # create screen
 
-WIDTH = 1920
-WIDTH_ANGLE = 2*math.pi/3 # 120 degrees
-HEIGHT = 1080 
-HEIGHT_ANGLE = math.pi/2 # 90 degrees
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 sky_color = (0, 157, 255) # light blue
@@ -96,8 +112,23 @@ while run:
             event.cannonball.kill()
             event.ship.kill()
     
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP] and cannon.ud_angle < math.pi / 4:
+        cannon.ud_angle += math.pi / 180
+        print("cannon ud_angle adjusted to ", cannon.ud_angle)
+    if keys[pygame.K_DOWN] and cannon.ud_angle > 0.5:
+        cannon.ud_angle -= math.pi / 180
+        print("cannon ud_angle adjusted to ", cannon.ud_angle)
+    if keys[pygame.K_LEFT] and cannon.lr_angle > -0.95:
+        cannon.lr_angle -= math.pi / 180
+        print("cannon lr_angle adjusted to ", cannon.lr_angle)
+    if keys[pygame.K_RIGHT] and cannon.lr_angle < 0.95:
+        cannon.lr_angle += math.pi / 180
+        print("cannon lr_angle adjusted to ", cannon.lr_angle)
+    
     if (next_ship_time == 0): # time to create another ship
-        new_ship = Ship(random.randint(50, 100))
+        new_ship = Ship(random.randint(50,300))
+        # new_ship = Ship(50)
         ships.add(new_ship)
         next_ship_time = random.randint(60,120) # set countdown for next ship
 
@@ -109,7 +140,7 @@ while run:
     for cannonball in cannonballs:
         for ship in ships:
             diff_vec = cannonball.pos - ship.pos
-            if (abs(diff_vec.x) < 10 and abs(diff_vec.y) < 5 and abs(diff_vec.z < 15)):
+            if (diff_vec.magnitude() < 20):
                 print(cannonball)
                 print(ship)
                 ship_hit_data = {"cannonball": cannonball, "ship": ship}
@@ -122,6 +153,7 @@ while run:
 
     ships.draw(screen)
     cannonballs.draw(screen)
+    screen.blit(cannon.image, cannon.rect)
 
     pygame.display.flip() # update screen
 
