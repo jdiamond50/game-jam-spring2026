@@ -70,10 +70,8 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
     def update(self):
         self.pos += self.vel
         update_rect(self)
-        if self.pos.x > 70: # pause island ships
-            self.vel = pygame.math.Vector3(0,0,0)
-            
-            
+        if self.pos.x > 70 and curr_time < game_time: # pause island ships
+            self.vel = pygame.math.Vector3(0,0,0)      
 
 ships = pygame.sprite.Group()
 cannonballs = pygame.sprite.Group()
@@ -81,8 +79,11 @@ cannon = Cannon()
 
 pygame.init()
 
+# events
+
 CANNON_FIRED_EVENT = pygame.event.custom_type()
 SHIP_HIT = pygame.event.custom_type()
+NIGHTFALL = pygame.event.custom_type()
 
 TITLE_EVENT = pygame.event.custom_type()
 GAME_OVER_EVENT = pygame.event.custom_type()
@@ -104,14 +105,25 @@ clock = pygame.time.Clock()
 framerate = 60
 next_ship_time = random.randint(1*framerate, 2*framerate) # [1 second, 2 seconds]
 
-game_time = -1
+curr_time = -1 # measured in num frames
+game_time = 10*framerate # total length of the level
 red_island = False # If the island is taking damage this tick
 island_health = 50 # The island starting health
+
+def get_sky_color():
+    t = curr_time / game_time
+    return (
+        night_sky_color[0] * t + day_sky_color[0] * (1 - t),
+        night_sky_color[1] * t + day_sky_color[1] * (1 - t),
+        night_sky_color[2] * t + day_sky_color[2] * (1 - t)
+    )
 
 run = True
 while run:
     clock.tick(framerate)
-    game_time+=1
+    curr_time+=1
+
+    if curr_time == game_time: pygame.event.post(pygame.event.Event(NIGHTFALL))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT: 
@@ -123,9 +135,12 @@ while run:
             new_cannonball = Cannonball()
             cannonballs.add(new_cannonball)
         if event.type == SHIP_HIT:
-            print("ship_hit")
             event.cannonball.kill()
             event.ship.kill()
+        if event.type == NIGHTFALL:
+            for ship in ships:
+                ship.vel = (-0.5,0,0)
+                ship.image = pygame.transform.flip(ship.image, True, False)
     
     keys = pygame.key.get_pressed()
     if keys[pygame.K_UP] and cannon.ud_angle < math.pi / 4:
@@ -142,7 +157,7 @@ while run:
         cannon.lr_angle += math.pi / 180
         # print("cannon lr_angle adjusted to ", cannon.lr_angle)
     
-    if (next_ship_time == 0): # time to create another ship
+    if (next_ship_time == 0 and curr_time < game_time): # time to create another ship
         new_ship = Ship(random.randint(50,300))
         # new_ship = Ship(50)
         ships.add(new_ship)
@@ -155,10 +170,10 @@ while run:
 
     for ship in ships:
         # island damage if ship has zero velocity
-        if ship.vel == pygame.math.Vector3(0,0,0) and game_time % 60 == 0:
+        if ship.vel == pygame.math.Vector3(0,0,0) and curr_time % 60 == 0:
             red_island = True
             island_health -=1
-        elif game_time % 60 >= 5:
+        elif curr_time % 60 >= 5:
             red_island = False
 
         # ship hit
@@ -172,7 +187,9 @@ while run:
 
     # draw stuff
 
-    pygame.draw.rect(screen, sky_color, (0,0,WIDTH, HEIGHT/2))
+    curr_sky_color = night_sky_color
+    if curr_time < game_time: curr_sky_color = get_sky_color()
+    pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2))
     pygame.draw.rect(screen, water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
 
     pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2,(50*(WIDTH/200))+4, (HEIGHT/30)+4))
