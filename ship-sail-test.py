@@ -92,7 +92,8 @@ LEVEL_SELECT_EVENT = pygame.event.custom_type()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-sky_color = (0, 157, 255) # light blue
+day_sky_color = (0, 157, 255) # light blue
+night_sky_color = (0, 0, 80)
 water_color = (2, 71, 181) # dark blue
 island_color = (6, 64, 43) # dark green
 damage_color = (179, 27, 27) # red
@@ -103,16 +104,14 @@ clock = pygame.time.Clock()
 framerate = 60
 next_ship_time = random.randint(1*framerate, 2*framerate) # [1 second, 2 seconds]
 
-second = -1
+game_time = -1
 red_island = False # If the island is taking damage this tick
 island_health = 50 # The island starting health
 
 run = True
 while run:
     clock.tick(framerate)
-    second+=1
-    if second >= 60:
-        second = 0
+    game_time+=1
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT: 
@@ -156,10 +155,10 @@ while run:
 
     for ship in ships:
         # island damage if ship has zero velocity
-        if ship.vel == pygame.math.Vector3(0,0,0) and second == 0:
+        if ship.vel == pygame.math.Vector3(0,0,0) and game_time % 60 == 0:
             red_island = True
             island_health -=1
-        elif second >= 5:
+        elif game_time % 60 >= 5:
             red_island = False
 
         # ship hit
