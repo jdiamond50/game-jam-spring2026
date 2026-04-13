@@ -197,7 +197,7 @@ while run:
         curr_sky_color = get_color_gradient(day_sky_color, night_sky_color, curr_time / game_time)
         curr_water_color = get_color_gradient(day_water_color, night_water_color, curr_time / game_time)
     pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2))
-    pygame.draw.rect(screen, water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
+    pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
 
     pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2,(50*(WIDTH/200))+4, (HEIGHT/30)+4))
 
