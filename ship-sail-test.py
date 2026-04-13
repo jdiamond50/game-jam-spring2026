@@ -131,17 +131,17 @@ while run:
     keys = pygame.key.get_pressed()
     if keys[pygame.K_UP] and cannon.ud_angle < math.pi / 4:
         cannon.ud_angle += math.pi / 180
-        print("cannon ud_angle adjusted to ", cannon.ud_angle)
+        # print("cannon ud_angle adjusted to ", cannon.ud_angle)
     # if keys[pygame.K_DOWN] and cannon.ud_angle > 0.5:
     if keys[pygame.K_DOWN] and cannon.ud_angle > 0.35:
         cannon.ud_angle -= math.pi / 180
-        print("cannon ud_angle adjusted to ", cannon.ud_angle)
+        # print("cannon ud_angle adjusted to ", cannon.ud_angle)
     if keys[pygame.K_LEFT] and cannon.lr_angle > -0.95:
         cannon.lr_angle -= math.pi / 180
-        print("cannon lr_angle adjusted to ", cannon.lr_angle)
+        # print("cannon lr_angle adjusted to ", cannon.lr_angle)
     if keys[pygame.K_RIGHT] and cannon.lr_angle < 0.95:
         cannon.lr_angle += math.pi / 180
-        print("cannon lr_angle adjusted to ", cannon.lr_angle)
+        # print("cannon lr_angle adjusted to ", cannon.lr_angle)
     
     if (next_ship_time == 0): # time to create another ship
         new_ship = Ship(random.randint(50,300))
@@ -149,20 +149,21 @@ while run:
         ships.add(new_ship)
         next_ship_time = random.randint(60,120) # set countdown for next ship
 
-    for ship in ships: # damages the island if a ship has 0 velocity
+    next_ship_time -= 1
+
+    ships.update()
+    cannonballs.update()
+
+    for ship in ships:
+        # island damage if ship has zero velocity
         if ship.vel == pygame.math.Vector3(0,0,0) and second == 0:
             red_island = True
             island_health -=1
         elif second >= 5:
             red_island = False
 
-    next_ship_time -= 1
-
-    ships.update()
-    cannonballs.update()
-
-    for cannonball in cannonballs:
-        for ship in ships:
+        # ship hit
+        for cannonball in cannonballs:
             diff_vec = cannonball.pos - ship.pos
             if (diff_vec.magnitude() < 20):
                 print(cannonball)
