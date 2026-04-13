@@ -95,9 +95,10 @@ LEVEL_SELECT_EVENT = pygame.event.custom_type()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-day_sky_color = (0, 157, 255) # light blue
+day_sky_color = (0, 157, 255)
 night_sky_color = (0, 0, 80)
-water_color = (2, 71, 181) # dark blue
+day_water_color = (2, 71, 181)
+night_water_color = (0, 2, 44)
 island_color = (6, 64, 43) # dark green
 damage_color = (179, 27, 27) # red
 border_color = (0, 0, 0) # balck
@@ -112,12 +113,12 @@ game_time = 15*framerate # total length of the level
 is_red_island = False # If the island is taking damage this tick
 island_health = 50 # The island starting health
 
-def get_sky_color():
-    t = curr_time / game_time
+def get_color_gradient(start_color, end_color, parameter):
+    # returns the color that is 0 <= parameter 1 <= of the way between start_color and end_color
     return (
-        night_sky_color[0] * t + day_sky_color[0] * (1 - t),
-        night_sky_color[1] * t + day_sky_color[1] * (1 - t),
-        night_sky_color[2] * t + day_sky_color[2] * (1 - t)
+        end_color[0] * parameter + start_color[0] * (1 - parameter),
+        end_color[1] * parameter + start_color[1] * (1 - parameter),
+        end_color[2] * parameter + start_color[2] * (1 - parameter)
     )
 
 run = True
@@ -191,7 +192,10 @@ while run:
     # draw stuff
 
     curr_sky_color = night_sky_color
-    if curr_time < game_time: curr_sky_color = get_sky_color()
+    curr_water_color = night_water_color
+    if curr_time < game_time: 
+        curr_sky_color = get_color_gradient(day_sky_color, night_sky_color, curr_time / game_time)
+        curr_water_color = get_color_gradient(day_water_color, night_water_color, curr_time / game_time)
     pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2))
     pygame.draw.rect(screen, water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
 
