@@ -28,7 +28,7 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
     def update(self):
         self.pos += self.vel
         update_rect(self)
-        if self.pos.x > 60: # pause island ships
+        if self.pos.x > 70: # pause island ships
             self.vel = pygame.math.Vector3(0,0,0)
             
             
@@ -38,6 +38,10 @@ ships = pygame.sprite.Group()
 pygame.init()
 
 CANNON_FIRED_EVENT = pygame.event.custom_type()
+
+TITLE_EVENT = pygame.event.custom_type()
+GAME_OVER_EVENT = pygame.event.custom_type()
+LEVEL_SELECT_EVENT = pygame.event.custom_type()
 
 # create screen
 
@@ -99,7 +103,7 @@ while run:
     pygame.draw.rect(screen, sky_color, (0,0,WIDTH, HEIGHT/2))
     pygame.draw.rect(screen, water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
 
-    pygame.draw.rect(screen, border_color, (WIDTH-(WIDTH/3),HEIGHT/5,50*(WIDTH/200), HEIGHT/30))
+    pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2,(50*(WIDTH/200))+4, (HEIGHT/30)+4))
 
     if red_island == True: # draws island red or green
         pygame.draw.polygon(screen, damage_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
