@@ -58,24 +58,36 @@ class Cannonball(pygame.sprite.Sprite):
             pygame.mixer.Sound.play(sound_miss)
             self.kill()
 
+ship_sink_anim = []
+for i in range(30):
+    ship_sink_anim.append(pygame.image.load('ship_animation/ship' + str(i) + ".png"))
+
 class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
 
     def __init__(self, y_val):
         super().__init__() 
-        self.original_image = pygame.image.load('ship.png') 
+        self.original_image = ship_sink_anim[0]
         self.size = 750
         self.pos = pygame.math.Vector3(-2*y_val, y_val, 0) 
         self.vel = pygame.math.Vector3(1,0,0)
+        self.sinking = False
+        self.sinking_frame = -1
         update_rect(self)
     
     def update(self, curr_time, game_time):
         self.pos += self.vel
-        update_rect(self)
         if self.pos.x > 70 and curr_time < game_time: # pause island ships
-            print("ship velocity set to 0")
             self.vel = pygame.math.Vector3(0,0,0)      
         if self.pos.x < -2*self.pos.y: 
             self.kill()
+        if self.sinking:
+            self.sinking_frame += 1
+            if self.sinking_frame == 30: 
+                self.kill()
+                return
+            self.original_image = ship_sink_anim[self.sinking_frame]
+            print("ship sprite set to ship", self.sinking_frame)
+        update_rect(self)
 
 pygame.init()
 
@@ -83,10 +95,10 @@ ships = pygame.sprite.LayeredUpdates()
 
 # sound effect audio files
 
-sound_hit = pygame.mixer.Sound("hit.wav")
-sound_fire = pygame.mixer.Sound("cannon_fire.wav")
-sound_miss = pygame.mixer.Sound("splash.wav")
-sound_island_hurt = pygame.mixer.Sound("smash.wav")
+sound_hit = pygame.mixer.Sound("sound_files/hit.wav")
+sound_fire = pygame.mixer.Sound("sound_files/cannon_fire.wav")
+sound_miss = pygame.mixer.Sound("sound_files/splash.wav")
+sound_island_hurt = pygame.mixer.Sound("sound_files/smash.wav")
 sound_select = 0 # sounds to still be added
 sound_begin = 0
 sound_lose_game = 0
@@ -218,9 +230,8 @@ def gameplay_loop():
                 if event.key == pygame.K_SPACE:
                     pygame.event.post(pygame.event.Event(CANNON_FIRED_EVENT))
             if event.type == NIGHTFALL:
-                print("nightfall")
                 for ship in ships:
-                    ship.vel = (-0.5,0,0)
+                    if not ship.sinking: ship.vel = (-0.5,0,0)
                     ship.original_image = pygame.transform.flip(ship.original_image, True, False)
             if event.type == CANNON_FIRED_EVENT:
                 pygame.mixer.Sound.play(sound_fire)
@@ -229,8 +240,7 @@ def gameplay_loop():
             if event.type == SHIP_HIT:
                 pygame.mixer.Sound.play(sound_hit)
                 event.cannonball.kill()
-                event.ship.kill()
-
+                event.ship.sinking = True
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP] and cannon.ud_angle < math.pi / 4:
