@@ -140,18 +140,14 @@ def title_loop():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == PLAY:
-                        print("play button pressed")
                         game_state = GAMEPLAY_SCREEN
                         on_title_screen = False
                     elif current_button_selected == QUIT:
-                        print("quit button pressed")
                         pygame.event.post(pygame.event.Event(pygame.QUIT)) 
                 elif event.key == pygame.K_DOWN:
                     current_button_selected = QUIT
-                    print("quit button selected")
                 elif event.key == pygame.K_UP:
                     current_button_selected = PLAY
-                    print("play button selected")
     
         # draw stuff
 
@@ -341,7 +337,6 @@ def game_over_loop():
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
 
         pygame.display.flip() # update screen
-
 
 while run:
 
