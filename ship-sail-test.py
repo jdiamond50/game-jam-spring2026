@@ -78,12 +78,16 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
 
 pygame.init()
 
-#sound and audio files
+# sound effect audio files
 
 sound_hit = pygame.mixer.Sound("hit.wav")
 sound_fire = pygame.mixer.Sound("cannon_fire.wav")
 sound_miss = pygame.mixer.Sound("splash.wav")
 sound_island_hurt = pygame.mixer.Sound("smash.wav")
+sound_select = 0 # sounds to still be added
+sound_begin = 0
+sound_lose_game = 0
+sound_win_level = 0
 
 sound_fire.set_volume(.6)
 sound_miss.set_volume(.85)
