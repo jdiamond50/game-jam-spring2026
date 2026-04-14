@@ -72,11 +72,14 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
         self.pos += self.vel
         update_rect(self)
         if self.pos.x > 70 and curr_time < game_time: # pause island ships
+            print("ship velocity set to 0")
             self.vel = pygame.math.Vector3(0,0,0)      
         if self.pos.x < -2*self.pos.y: 
             self.kill()
 
 pygame.init()
+
+ships = pygame.sprite.LayeredUpdates()
 
 # sound effect audio files
 
@@ -184,11 +187,11 @@ def title_loop():
         pygame.display.flip() # update screen
 
 def gameplay_loop():
-    global run, game_state
+    global run, game_state, ships
 
-    ships = pygame.sprite.LayeredUpdates()
     cannonballs = pygame.sprite.Group()
     cannon = Cannon()   
+    ships.empty()
 
     on_gameplay_screen = True
 
@@ -200,7 +203,6 @@ def gameplay_loop():
     island_health = 50 # The island starting health
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
 
-    
     while on_gameplay_screen:
         clock.tick(framerate)
 
@@ -216,6 +218,7 @@ def gameplay_loop():
                 if event.key == pygame.K_SPACE:
                     pygame.event.post(pygame.event.Event(CANNON_FIRED_EVENT))
             if event.type == NIGHTFALL:
+                print("nightfall")
                 for ship in ships:
                     ship.vel = (-0.5,0,0)
                     ship.original_image = pygame.transform.flip(ship.original_image, True, False)
@@ -310,17 +313,18 @@ def game_over_loop():
     QUIT = 1
     current_button_selected = PLAY_AGAIN
 
-    on_title_screen = True
-    while on_title_screen:
+    on_game_over_screen = True
+    while on_game_over_screen:
+        clock.tick(framerate)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                on_title_screen = False
+                on_game_over_screen = False
                 run = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == PLAY_AGAIN:
                         game_state = GAMEPLAY_SCREEN
-                        on_title_screen = False
+                        on_game_over_screen = False
                     elif current_button_selected == QUIT:
                         pygame.event.post(pygame.event.Event(pygame.QUIT)) 
                 elif event.key == pygame.K_DOWN:
@@ -330,7 +334,20 @@ def game_over_loop():
     
         # draw stuff
 
-        pygame.draw.rect(screen, day_water_color, (0,0,WIDTH, HEIGHT)) # background
+        # pygame.draw.rect(screen, day_water_color, (0,0,WIDTH, HEIGHT)) # background
+
+        # -- draw background --
+
+        # draw background
+        pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2))
+        pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
+
+        # draw island
+        pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
+
+        # draw ships
+        ships.update(1,0)
+        ships.draw(screen)
 
         # -- draw buttons -- 
         
@@ -342,7 +359,7 @@ def game_over_loop():
 
         # button background
         pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2-250, 800, 200)) # play again button
-        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+100, 800, 200)) # quit button
+        pygame.draw.rect(screen, night_sky_color, (WIDTH/2-400, HEIGHT/2+100, 800, 200)) # quit button
 
         # button text
         font = pygame.font.Font('PirateJack-lglRX.otf',175) # Pirate Jack by font by Tigade Std
