@@ -55,6 +55,7 @@ class Cannonball(pygame.sprite.Sprite):
             self.fired = True
         update_rect(self)
         if self.pos.z < 0 and self.fired: # cannonball hits the water
+            pygame.mixer.Sound.play(sound_miss)
             self.kill()
 
 class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
@@ -80,6 +81,11 @@ cannonballs = pygame.sprite.Group()
 cannon = Cannon()
 
 pygame.init()
+
+#sound and audio files
+sound_hit = pygame.mixer.Sound("hit.wav")
+sound_fire = pygame.mixer.Sound("cannon_fire.wav")
+sound_miss = pygame.mixer.Sound("splash.wav")
 
 # events
 
@@ -135,9 +141,11 @@ while run:
             if event.key == pygame.K_SPACE:
                 pygame.event.post(pygame.event.Event(CANNON_FIRED_EVENT))
         if event.type == CANNON_FIRED_EVENT:
+            pygame.mixer.Sound.play(sound_fire)
             new_cannonball = Cannonball()
             cannonballs.add(new_cannonball)
         if event.type == SHIP_HIT:
+            pygame.mixer.Sound.play(sound_hit)
             event.cannonball.kill()
             event.ship.kill()
         if event.type == NIGHTFALL:
