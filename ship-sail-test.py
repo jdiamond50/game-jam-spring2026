@@ -85,6 +85,9 @@ sound_fire = pygame.mixer.Sound("cannon_fire.wav")
 sound_miss = pygame.mixer.Sound("splash.wav")
 sound_island_hurt = pygame.mixer.Sound("smash.wav")
 
+sound_fire.set_volume(.6)
+sound_miss.set_volume(.85)
+
 # events
 
 CANNON_FIRED_EVENT = pygame.event.custom_type()
