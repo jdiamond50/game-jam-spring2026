@@ -79,9 +79,11 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
 pygame.init()
 
 #sound and audio files
+
 sound_hit = pygame.mixer.Sound("hit.wav")
 sound_fire = pygame.mixer.Sound("cannon_fire.wav")
 sound_miss = pygame.mixer.Sound("splash.wav")
+sound_island_hurt = pygame.mixer.Sound("smash.wav")
 
 # events
 
@@ -193,6 +195,8 @@ def gameplay_loop():
     game_time = 60*framerate # total length of the level
     is_red_island = False # If the island is taking damage this tick
     island_health = 50 # The island starting health
+    previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
+
     
     while on_gameplay_screen:
         clock.tick(framerate)
@@ -262,6 +266,10 @@ def gameplay_loop():
                 if (diff_vec.magnitude() < 20):
                     ship_hit_data = {"cannonball": cannonball, "ship": ship}
                     pygame.event.post(pygame.event.Event(SHIP_HIT, ship_hit_data))
+
+        if previous_island_health != island_health:
+            pygame.mixer.Sound.play(sound_island_hurt)
+            previous_island_health = island_health
 
         if island_health <= 0 or curr_time >= game_time:
             on_gameplay_screen = False
