@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageOps
 import sys
 
 # usage:
@@ -15,4 +15,6 @@ for i in range(num_frames):
     filename = img_name[:-4] + str(i) + img_name[-4:]
     crop_box = (0,0, width, height - i * diff)
     cropped_img = img.crop(crop_box)
-    cropped_img.save(filename)
+    result_img = Image.new('RGBA', (width, height), (0,0,0,0))
+    result_img.paste(cropped_img, (0, int(i*diff)))
+    result_img.save(filename)

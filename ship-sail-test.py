@@ -13,7 +13,7 @@ def update_rect(sprite):
     # image scaling
     scale_factor = display_dist / sprite.pos.magnitude()
     display_size = sprite.size * scale_factor
-    sprite.image = pygame.transform.scale(sprite.original_image, (display_size, display_size))
+    sprite.image = pygame.transform.scale(sprite.original_image, (display_size, display_size / sprite.aspect_ratio))
 
     # location on screen
     lr_display_pos = math.atan(sprite.pos.x / sprite.pos.y) * (WIDTH / WIDTH_ANGLE) + (WIDTH / 2)
@@ -35,6 +35,8 @@ class Cannonball(pygame.sprite.Sprite):
     def __init__(self, cannon):
         super().__init__()
         self.original_image = pygame.image.load('cannonball.jpg')
+        rect = self.original_image.get_rect()
+        self.aspect_ratio = rect.width / rect.height
         self.size = 100
         self.pos = pygame.math.Vector3(0,20,-20) # changed from (0,1,-40)
         init_velocity = 13
@@ -59,7 +61,8 @@ class Cannonball(pygame.sprite.Sprite):
             self.kill()
 
 ship_sink_anim = []
-for i in range(30):
+ship_sink_anim_length = 60
+for i in range(ship_sink_anim_length):
     ship_sink_anim.append(pygame.image.load('ship_animation/ship' + str(i) + ".png"))
 
 class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
@@ -68,6 +71,8 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
         super().__init__() 
         self.original_image = ship_sink_anim[0]
         self.size = 750
+        rect = self.original_image.get_rect()
+        self.aspect_ratio = rect.width / rect.height
         self.pos = pygame.math.Vector3(-2*y_val, y_val, 0) 
         self.vel = pygame.math.Vector3(1,0,0)
         self.sinking = False
@@ -82,11 +87,12 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
             self.kill()
         if self.sinking:
             self.sinking_frame += 1
-            if self.sinking_frame == 30: 
+            if self.sinking_frame == ship_sink_anim_length: 
                 self.kill()
                 return
             self.original_image = ship_sink_anim[self.sinking_frame]
-            print("ship sprite set to ship", self.sinking_frame)
+            rect = self.original_image.get_rect()
+            self.aspect_ratio = rect.width / rect.height
         update_rect(self)
 
 pygame.init()
@@ -277,6 +283,8 @@ def gameplay_loop():
                 is_red_island = False
 
             # ship hit
+            if ship.sinking:
+                continue
             for cannonball in cannonballs:
                 diff_vec = cannonball.pos - ship.pos
                 if (diff_vec.magnitude() < 20):
