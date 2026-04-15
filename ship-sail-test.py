@@ -86,8 +86,8 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
     
     def update(self, curr_time, game_time):
         self.pos += self.vel
-        if self.pos.x > 70 and curr_time < game_time: # pause island ships
-            self.vel = pygame.math.Vector3(0,0,0)      
+        if self.pos.x > 70 and (curr_time < game_time or game_state == GAME_OVER_SCREEN): # pause island ships
+            self.vel = pygame.math.Vector3(0,0,0)
         if self.pos.x < -2*self.pos.y: 
             self.kill()
         if self.sinking:
