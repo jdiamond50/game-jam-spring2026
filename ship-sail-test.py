@@ -9,6 +9,10 @@ WIDTH_ANGLE = 2*math.pi/3 # 120 degrees
 HEIGHT = 1080 
 HEIGHT_ANGLE = math.pi/2 # 90 degrees
 
+pygame.init()
+ships = pygame.sprite.Group()
+active_sprites = pygame.sprite.LayeredUpdates() # contains ships and cannonballs
+
 def update_rect(sprite): 
     # image scaling
     scale_factor = display_dist / sprite.pos.magnitude()
@@ -52,6 +56,7 @@ class Cannonball(pygame.sprite.Sprite):
     def update(self):
         self.pos += self.vel
         self.vel += self.acc
+        active_sprites.change_layer(self, self.pos.y)
         # print("cannonball pos: ", self.pos)
         if self.pos.z >= 0: 
             self.fired = True
@@ -94,10 +99,6 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
             rect = self.original_image.get_rect()
             self.aspect_ratio = rect.width / rect.height
         update_rect(self)
-
-pygame.init()
-
-ships = pygame.sprite.LayeredUpdates()
 
 # sound effect audio files
 
@@ -243,6 +244,7 @@ def gameplay_loop():
                 pygame.mixer.Sound.play(sound_fire)
                 new_cannonball = Cannonball(cannon)
                 cannonballs.add(new_cannonball)
+                active_sprites.add(new_cannonball)
             if event.type == SHIP_HIT:
                 pygame.mixer.Sound.play(sound_hit)
                 event.cannonball.kill()
@@ -266,7 +268,8 @@ def gameplay_loop():
         if (next_ship_time == 0 and curr_time < game_time): # time to create another ship
             y_dist = random.randint(50,300)
             new_ship = Ship(y_dist)
-            ships.add(new_ship, layer=-y_dist)
+            ships.add(new_ship)
+            active_sprites.add(new_ship, layer=-y_dist)
             next_ship_time = random.randint(60,120) # set countdown for next ship
 
         next_ship_time -= 1
@@ -318,7 +321,7 @@ def gameplay_loop():
             pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
             pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
 
-        ships.draw(screen)
+        active_sprites.draw(screen)
         cannonballs.draw(screen)
         screen.blit(cannon.image, cannon.rect)
 
@@ -365,7 +368,7 @@ def game_over_loop():
 
         # draw ships
         ships.update(1,0)
-        ships.draw(screen)
+        active_sprites.draw(screen)
 
         # -- draw buttons -- 
         
