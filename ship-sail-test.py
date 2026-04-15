@@ -151,6 +151,10 @@ def get_color_gradient(start_color, end_color, parameter):
 TITLE_SCREEN = 0
 GAMEPLAY_SCREEN = 1
 GAME_OVER_SCREEN = 2
+NEXT_LEVEL_SCREEN = 3
+
+current_level = 0
+kill_count = 0
 
 run = True
 game_state = TITLE_SCREEN
@@ -206,18 +210,23 @@ def title_loop():
         pygame.display.flip() # update screen
 
 def gameplay_loop():
-    global run, game_state, ships
+    global run, game_state, ships, current_level, kill_count
+
+    current_level += 1
+    print(current_level)
 
     cannonballs = pygame.sprite.Group()
     cannon = Cannon()   
     ships.empty()
+    active_sprites.empty()
+    cannonballs.empty()
 
     on_gameplay_screen = True
 
-    next_ship_time = random.randint(1*framerate, 2*framerate) # [1 second, 2 seconds]
+    next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # [1 second, 2 seconds] decreases each level
 
     curr_time = -1 # measured in num frames
-    game_time = 60*framerate # total length of the level
+    game_time = 10*framerate # total length of the level
     is_red_island = False # If the island is taking damage this tick
     island_health = 50 # The island starting health
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
@@ -240,12 +249,15 @@ def gameplay_loop():
                 for ship in ships:
                     if not ship.sinking: ship.vel = (-0.5,0,0)
                     ship.original_image = pygame.transform.flip(ship.original_image, True, False)
+                on_gameplay_screen = False
+                game_state = NEXT_LEVEL_SCREEN
             if event.type == CANNON_FIRED_EVENT:
                 pygame.mixer.Sound.play(sound_fire)
                 new_cannonball = Cannonball(cannon)
                 cannonballs.add(new_cannonball)
                 active_sprites.add(new_cannonball)
             if event.type == SHIP_HIT:
+                kill_count += 1
                 pygame.mixer.Sound.play(sound_hit)
                 event.cannonball.kill()
                 event.ship.sinking = True
@@ -270,7 +282,7 @@ def gameplay_loop():
             new_ship = Ship(y_dist)
             ships.add(new_ship)
             active_sprites.add(new_ship, layer=-y_dist)
-            next_ship_time = random.randint(60,120) # set countdown for next ship
+            next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # set countdown for next ship
 
         next_ship_time -= 1
 
@@ -298,7 +310,7 @@ def gameplay_loop():
             pygame.mixer.Sound.play(sound_island_hurt)
             previous_island_health = island_health
 
-        if island_health <= 0 or curr_time >= game_time:
+        if island_health <= 0:
             on_gameplay_screen = False
             game_state = GAME_OVER_SCREEN
 
@@ -327,8 +339,79 @@ def gameplay_loop():
 
         pygame.display.flip() # update screen
 
+
+def next_level_loop():
+    global run, game_state, current_level
+
+
+    NEXT_LEVEL = 0
+    QUIT = 1
+    current_button_selected = NEXT_LEVEL
+
+    on_menu_screen = True
+    while on_menu_screen:
+        clock.tick(framerate)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                on_menu_screen = False
+                run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    if current_button_selected == NEXT_LEVEL:
+                        game_state = GAMEPLAY_SCREEN
+                        on_menu_screen = False
+                    elif current_button_selected == QUIT:
+                        pygame.event.post(pygame.event.Event(pygame.QUIT)) 
+                elif event.key == pygame.K_DOWN:
+                    current_button_selected = QUIT
+                elif event.key == pygame.K_UP:
+                    current_button_selected = NEXT_LEVEL
+    
+        # draw stuff
+
+        # pygame.draw.rect(screen, day_water_color, (0,0,WIDTH, HEIGHT)) # background
+
+        # -- draw background --
+
+        # draw background
+        pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2))
+        pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
+
+        # draw island
+        pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
+
+        # draw ships
+        ships.update(1,0)
+        active_sprites.draw(screen)
+
+        # -- draw buttons -- 
+        
+        # highlight currently selected button
+        if current_button_selected == NEXT_LEVEL:
+            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2-255, 810, 210)) # play again button highlight
+        if current_button_selected == QUIT:
+            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2+95, 810, 210)) # quit button highlight
+
+        # button background
+        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2-250, 800, 200)) # play again button
+        pygame.draw.rect(screen, night_sky_color, (WIDTH/2-400, HEIGHT/2+100, 800, 200)) # quit button
+
+        # button text
+        font = pygame.font.Font('PirateJack-lglRX.otf',175) # Pirate Jack by font by Tigade Std
+        play_text = font.render('NEXT LEVEL', True, (255, 215, 0))
+        quit_text = font.render('QUIT', True, (255, 215, 0))
+        screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-145)))
+        screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
+
+        level_text = font.render('Level '+str(current_level)+' Complete', True, (255, 215, 0))
+        screen.blit(level_text,level_text.get_rect(center=(WIDTH/2,120)))
+
+        pygame.display.flip() # update screen
+
 def game_over_loop():
-    global run, game_state
+    global run, game_state, current_level, kill_count
+
+    current_level = 0
 
     PLAY_AGAIN = 0
     QUIT = 1
@@ -389,6 +472,13 @@ def game_over_loop():
         screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-145)))
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
 
+        lose_text = font.render('GAME OVER', True, (255, 215, 0))
+        kill_text = font.render(str(kill_count)+' Ships Sunk ', True, (255, 215, 0))
+        screen.blit(lose_text,lose_text.get_rect(center=(WIDTH/2,120)))
+        screen.blit(kill_text,kill_text.get_rect(center=(WIDTH/2,(HEIGHT)-120)))
+
+        kill_count = 0
+
         pygame.display.flip() # update screen
 
 while run:
@@ -397,6 +487,8 @@ while run:
         gameplay_loop()
     elif (game_state == TITLE_SCREEN):
         title_loop()
+    elif (game_state == NEXT_LEVEL_SCREEN):
+        next_level_loop()
     elif (game_state == GAME_OVER_SCREEN):
         game_over_loop()
 
