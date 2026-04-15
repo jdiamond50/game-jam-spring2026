@@ -213,7 +213,6 @@ def gameplay_loop():
     global run, game_state, ships, current_level, kill_count
 
     current_level += 1
-    print(current_level)
 
     cannonballs = pygame.sprite.Group()
     cannon = Cannon()   
@@ -230,6 +229,9 @@ def gameplay_loop():
     is_red_island = False # If the island is taking damage this tick
     island_health = 50 # The island starting health
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
+
+    if current_level == 1 and curr_time == -1:
+        kill_count = 0
 
     while on_gameplay_screen:
         clock.tick(framerate)
@@ -476,8 +478,6 @@ def game_over_loop():
         kill_text = font.render(str(kill_count)+' Ships Sunk ', True, (255, 215, 0))
         screen.blit(lose_text,lose_text.get_rect(center=(WIDTH/2,120)))
         screen.blit(kill_text,kill_text.get_rect(center=(WIDTH/2,(HEIGHT)-120)))
-
-        kill_count = 0
 
         pygame.display.flip() # update screen
 
