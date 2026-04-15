@@ -276,7 +276,7 @@ def gameplay_loop():
 
         for ship in ships:
             # island damage if ship has zero velocity
-            if ship.vel == pygame.math.Vector3(0,0,0) and curr_time % 60 == 0:
+            if ship.vel == pygame.math.Vector3(0,0,0) and curr_time % 60 == 0 and not ship.sinking:
                 is_red_island = True
                 island_health -=1
             elif curr_time % 60 >= 5:
