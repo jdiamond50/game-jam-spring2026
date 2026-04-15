@@ -226,7 +226,7 @@ def gameplay_loop():
     next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # [1 second, 2 seconds] decreases each level
 
     curr_time = -1 # measured in num frames
-    game_time = 10*framerate # total length of the level
+    game_time = 60*framerate # total length of the level
     is_red_island = False # If the island is taking damage this tick
     island_health = 50 # The island starting health
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
