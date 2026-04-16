@@ -33,6 +33,17 @@ class Cannon(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(WIDTH/2, HEIGHT - 200))
         self.ud_angle = math.pi / 4
         self.lr_angle = 0
+    
+    def update(self):
+        row = int(16 * (self.ud_angle - 0.35) // (math.pi / 4 - 0.35))
+        col = int(47 * (self.lr_angle + 0.95) // (0.95 + 0.95))
+        if row < 0: row = 0
+        if row > 16: row = 16
+        if col < 0: col = 0
+        if col > 47: col = 47
+        # print(row, ", ", col)
+        self.image = cannon_anim[row][col]
+        self.image = pygame.transform.scale(self.image, (400,400))
 
 class Cannonball(pygame.sprite.Sprite):
 
@@ -69,6 +80,19 @@ ship_sink_anim = []
 ship_sink_anim_length = 60
 for i in range(ship_sink_anim_length):
     ship_sink_anim.append(pygame.image.load('ship_animation/ship' + str(i) + ".png"))
+
+cannon_anim = []
+for i in range(17):
+    cannon_anim.append([])
+    dir_name = "cannon_anim/cannon_anim_" + str(i)
+    ending = ".png"
+    for j in range(1, 49):
+        num = str(j).zfill(3)
+        cannon_anim[i].append(pygame.image.load(dir_name + "/img_" + num + ending))
+    if i in [3, 7, 11, 14, 15, 16]:
+        cannon_anim[i].append(pygame.image.load(dir_name + "/img_049" + ending))
+    if i == 7:
+        cannon_anim[i].append(pygame.image.load(dir_name + "/img_050" + ending))
 
 class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
 
@@ -290,6 +314,7 @@ def gameplay_loop():
 
         ships.update(curr_time, game_time)
         cannonballs.update()
+        cannon.update()
 
         for ship in ships:
             # island damage if ship has zero velocity
