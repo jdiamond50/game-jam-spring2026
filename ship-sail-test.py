@@ -266,8 +266,23 @@ def title_loop(button_delay):
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
 
         pygame.display.flip() # update screen
+        
 
-def gameplay_loop():
+def gameplay_loop(cannon_cooldown = framerate*(3/2), game_time = 90*framerate, island_health = 50, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
+    """There are now 6 adjustable parameters for the gameplay_loop
+
+cannon_cooldown - is how often the cannon reloads
+game_time - is the lenght of each day
+island_health - is how much heath the island starts with
+max_ship_distance - is the furthest distance a new ship can spawn
+next_ship_time_randomness - can be between 1 & 2, 1 is defaultly random, 2 is no randomness (aka at 2 new ships will arrive at a constant rate)
+enemy_fire_rate - is the rate at which ships will damage the island once there
+
+Theoretically we could allow the player to improve one of these after each successful level completion,
+the speed at which new ships arrive would still always be increasing so they should't survive infinitely
+
+currently none of them actually change when leveling up
+"""
     global run, game_state, ships, current_level, kill_count
 
     current_level += 1
@@ -281,17 +296,16 @@ def gameplay_loop():
     on_gameplay_screen = True
 
     if current_level > framerate: # the level 60 clause
-        next_ship_time = 1
+        next_ship_time = next_ship_time_randomness
     else:
-        next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # [1 second, 2 seconds] decreases each level
+        next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((2*framerate)/current_level)) # [1 second, 2 seconds] decreases each level
 
     curr_time = -1 # measured in num frames
-    game_time = 60*framerate # total length of the level
-    is_red_island = False # If the island is taking damage this tick
-    island_health = 50 # The island starting health
-    previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
     
-    cannon_cooldown = framerate*(3/2) # a cooldown for the cannon fire
+    is_red_island = False # If the island is taking damage this tick
+    previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
+    if curr_time == -1:
+        initial_island_health = island_health
     
     if current_level == 1 and curr_time == -1:
         kill_count = 0
@@ -317,6 +331,9 @@ def gameplay_loop():
                 for ship in ships:
                     if not ship.sinking: ship.vel = (-0.5,0,0)
                     ship.original_image = pygame.transform.flip(ship.original_image, True, False)
+                for cannonball in cannonballs:
+                    cannonball.kill()
+                    cannonballs.update()
                 on_gameplay_screen = False
                 game_state = NEXT_LEVEL_SCREEN
             if event.type == CANNON_FIRED_EVENT:
@@ -347,14 +364,14 @@ def gameplay_loop():
             # print("cannon lr_angle adjusted to ", cannon.lr_angle)
         
         if (next_ship_time == 0 and curr_time < game_time): # time to create another ship
-            y_dist = random.randint(50,300)
+            y_dist = random.randint(50,max_ship_distance)
             new_ship = Ship(y_dist)
             ships.add(new_ship)
             active_sprites.add(new_ship, layer=-y_dist)
             if current_level > framerate:
                 next_ship_time = 1
             else:
-                next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # set countdown for next ship
+                next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((2*framerate)/current_level)) # set countdown for next ship
 
         next_ship_time -= 1
 
@@ -364,7 +381,7 @@ def gameplay_loop():
 
         for ship in ships:
             # island damage if ship has zero velocity
-            if ship.vel == pygame.math.Vector3(0,0,0) and curr_time % 60 == 0 and not ship.sinking:
+            if ship.vel == pygame.math.Vector3(0,0,0) and curr_time % enemy_fire_rate == 0 and not ship.sinking:
                 is_red_island = True
                 island_health -=1
             elif curr_time % 60 >= 5:
@@ -386,6 +403,9 @@ def gameplay_loop():
         if island_health <= 0:
             on_gameplay_screen = False
             game_state = GAME_OVER_SCREEN
+            for cannonball in cannonballs:
+                cannonball.kill()
+                cannonballs.update()
 
         # draw stuff
 
@@ -397,7 +417,7 @@ def gameplay_loop():
         pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2))
         pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
 
-        pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2,(50*(WIDTH/200))+4, (HEIGHT/30)+4))
+        pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2,(initial_island_health*(WIDTH/200))+4, (HEIGHT/30)+4))
 
         if is_red_island: # draws island red or green
             pygame.draw.polygon(screen, damage_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
