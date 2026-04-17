@@ -384,7 +384,7 @@ currently none of them actually change when leveling up
             if ship.vel == pygame.math.Vector3(0,0,0) and curr_time % enemy_fire_rate == 0 and not ship.sinking:
                 is_red_island = True
                 island_health -=1
-            elif curr_time % 60 >= 5:
+            elif curr_time % enemy_fire_rate >= 5:
                 is_red_island = False
 
             # ship hit
