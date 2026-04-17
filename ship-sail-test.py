@@ -82,24 +82,6 @@ class Cannonball(pygame.sprite.Sprite):
             pygame.mixer.Sound.play(sound_miss)
             self.kill()
 
-ship_sink_anim = []
-ship_sink_anim_length = 60
-for i in range(ship_sink_anim_length):
-    ship_sink_anim.append(pygame.image.load('ship_animation/ship' + str(i) + ".png"))
-
-cannon_anim = []
-for i in range(17):
-    cannon_anim.append([])
-    dir_name = "cannon_anim/cannon_anim_" + str(i)
-    ending = ".png"
-    for j in range(1, 49):
-        num = str(j).zfill(3)
-        cannon_anim[i].append(pygame.image.load(dir_name + "/img_" + num + ending))
-    if i in [3, 7, 11, 14, 15, 16]:
-        cannon_anim[i].append(pygame.image.load(dir_name + "/img_049" + ending))
-    if i == 7:
-        cannon_anim[i].append(pygame.image.load(dir_name + "/img_050" + ending))
-
 class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
 
     def __init__(self, y_val):
@@ -142,7 +124,7 @@ sound_lose_game = 0
 sound_win_level = 0
 
 sound_fire.set_volume(.6)
-sound_miss.set_volume(.85)
+sound_miss.set_volume(.6)
 
 # events
 
@@ -183,14 +165,20 @@ GAMEPLAY_SCREEN = 1
 GAME_OVER_SCREEN = 2
 NEXT_LEVEL_SCREEN = 3
 
+load_open = 0 # variable for loading images on startup
+cannon_anim = []
+ship_sink_anim = []
+ship_sink_anim_length = 60
+
 current_level = 0
 kill_count = 0
 
 run = True
 game_state = TITLE_SCREEN
 
-def title_loop():
-    global run, game_state
+def title_loop(button_delay):
+    # this is probably too many global variables but if it works it works i guess
+    global run, game_state, load_open, cannon_anim, ship_sink_anim, ship_sink_anim_length 
 
     PLAY = 0
     QUIT = 1
@@ -198,11 +186,12 @@ def title_loop():
 
     on_title_screen = True
     while on_title_screen:
+        button_delay -= 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on_title_screen = False
                 run = False
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and button_delay <= 0:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == PLAY:
                         game_state = GAMEPLAY_SCREEN
@@ -232,6 +221,45 @@ def title_loop():
 
         # button text
         font = pygame.font.Font('PirateJack-lglRX.otf',175) # Pirate Jack by font by Tigade Std
+        
+        if load_open == 0: # loading screen for loading the cannon images
+            load_percent = 0
+            loading_text = font.render('Loading', True, (255, 215, 0))
+            screen.blit(loading_text,loading_text.get_rect(center=(WIDTH/2,HEIGHT/2-145)))
+            percent_text = font.render(str(int(load_percent*10000)/100)+'%', True, (255, 215, 0))
+            screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
+            pygame.display.flip()
+            load_open += 1
+            
+            for i in range(ship_sink_anim_length):
+                ship_sink_anim.append(pygame.image.load('ship_animation/ship' + str(i) + ".png"))
+                
+                load_percent += 1/(60+17)
+                pygame.draw.rect(screen, island_color, (WIDTH/2-400, HEIGHT/2+100, 800*load_percent, 200))
+                percent_text = font.render(str(int(load_percent*10000)/100)+'%', True, (255, 215, 0))
+                screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
+                pygame.display.flip()
+
+            for i in range(17):
+                cannon_anim.append([])
+                dir_name = "cannon_anim/cannon_anim_" + str(i)
+                ending = ".png"
+                
+                load_percent += 1/(60+17)
+                pygame.draw.rect(screen, island_color, (WIDTH/2-400, HEIGHT/2+100, 800*load_percent, 200))
+                percent_text = font.render(str(int(load_percent*10000)/100)+'%', True, (255, 215, 0))
+                screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
+                pygame.display.flip()
+                
+                for j in range(1, 49):
+                    num = str(j).zfill(3)
+                    cannon_anim[i].append(pygame.image.load(dir_name + "/img_" + num + ending))
+                if i in [3, 7, 11, 14, 15, 16]:
+                    cannon_anim[i].append(pygame.image.load(dir_name + "/img_049" + ending))
+                if i == 7:
+                    cannon_anim[i].append(pygame.image.load(dir_name + "/img_050" + ending))
+
+        
         play_text = font.render('PLAY', True, (255, 215, 0))
         quit_text = font.render('QUIT', True, (255, 215, 0))
         screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-145)))
@@ -252,14 +280,19 @@ def gameplay_loop():
 
     on_gameplay_screen = True
 
-    next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # [1 second, 2 seconds] decreases each level
+    if current_level > framerate: # the level 60 clause
+        next_ship_time = 1
+    else:
+        next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # [1 second, 2 seconds] decreases each level
 
     curr_time = -1 # measured in num frames
     game_time = 60*framerate # total length of the level
     is_red_island = False # If the island is taking damage this tick
     island_health = 50 # The island starting health
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
-
+    
+    cannon_cooldown = framerate*(3/2) # a cooldown for the cannon fire
+    
     if current_level == 1 and curr_time == -1:
         kill_count = 0
 
@@ -267,6 +300,8 @@ def gameplay_loop():
         clock.tick(framerate)
 
         curr_time+=1
+        if curr_time % cannon_cooldown == 0: # resets cannon cooldown
+            cannon_is_avail = True
 
         if curr_time == game_time: pygame.event.post(pygame.event.Event(NIGHTFALL))
 
@@ -275,8 +310,9 @@ def gameplay_loop():
                 run = False
                 on_gameplay_screen = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE and cannon_is_avail:
                     pygame.event.post(pygame.event.Event(CANNON_FIRED_EVENT))
+                    cannon_is_avail = False  # resets cannon cooldown
             if event.type == NIGHTFALL:
                 for ship in ships:
                     if not ship.sinking: ship.vel = (-0.5,0,0)
@@ -293,6 +329,7 @@ def gameplay_loop():
                 pygame.mixer.Sound.play(sound_hit)
                 event.cannonball.kill()
                 event.ship.sinking = True
+                cannon_is_avail = True
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP] and cannon.ud_angle < math.pi / 4:
@@ -314,7 +351,10 @@ def gameplay_loop():
             new_ship = Ship(y_dist)
             ships.add(new_ship)
             active_sprites.add(new_ship, layer=-y_dist)
-            next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # set countdown for next ship
+            if current_level > framerate:
+                next_ship_time = 1
+            else:
+                next_ship_time = random.randint(int((1*framerate)/current_level), int((2*framerate)/current_level)) # set countdown for next ship
 
         next_ship_time -= 1
 
@@ -366,6 +406,9 @@ def gameplay_loop():
             pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
             pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
 
+        if cannon_is_avail:
+            pygame.draw.circle(screen, border_color, (WIDTH-WIDTH/8,HEIGHT-HEIGHT/8), 50)
+
         active_sprites.draw(screen)
         cannonballs.draw(screen)
         screen.blit(cannon.image, cannon.rect)
@@ -373,7 +416,7 @@ def gameplay_loop():
         pygame.display.flip() # update screen
 
 
-def next_level_loop():
+def next_level_loop(button_delay):
     global run, game_state, current_level
 
 
@@ -384,11 +427,12 @@ def next_level_loop():
     on_menu_screen = True
     while on_menu_screen:
         clock.tick(framerate)
+        button_delay -= 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on_menu_screen = False
                 run = False
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and button_delay <= 0:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == NEXT_LEVEL:
                         game_state = GAMEPLAY_SCREEN
@@ -441,7 +485,7 @@ def next_level_loop():
 
         pygame.display.flip() # update screen
 
-def game_over_loop():
+def game_over_loop(button_delay):
     global run, game_state, current_level, kill_count
 
     current_level = 0
@@ -453,11 +497,12 @@ def game_over_loop():
     on_game_over_screen = True
     while on_game_over_screen:
         clock.tick(framerate)
+        button_delay -= 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on_game_over_screen = False
                 run = False
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and button_delay <= 0:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == PLAY_AGAIN:
                         game_state = GAMEPLAY_SCREEN
@@ -512,15 +557,15 @@ def game_over_loop():
 
         pygame.display.flip() # update screen
 
-while run:
+while run: # the button_delay times prevent accidental button selecing
 
     if (game_state == GAMEPLAY_SCREEN):
         gameplay_loop()
     elif (game_state == TITLE_SCREEN):
-        title_loop()
+        title_loop(10)
     elif (game_state == NEXT_LEVEL_SCREEN):
-        next_level_loop()
+        next_level_loop(60)
     elif (game_state == GAME_OVER_SCREEN):
-        game_over_loop()
+        game_over_loop(60)
 
 pygame.quit()
