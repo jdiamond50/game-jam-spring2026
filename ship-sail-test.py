@@ -307,7 +307,7 @@ currently none of them actually change when leveling up
     if curr_time == -1:
         initial_island_health = island_health
     
-    if current_level == 1 and curr_time == -1:
+    if current_level == 1 and curr_time == -1: # sets the kill count to 0 on day 1
         kill_count = 0
 
     while on_gameplay_screen:
@@ -417,15 +417,16 @@ currently none of them actually change when leveling up
         pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2))
         pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
 
+        # draws island & heath bar red or green
         pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2,(initial_island_health*(WIDTH/200))+4, (HEIGHT/30)+4))
-
-        if is_red_island: # draws island red or green
+        if is_red_island:
             pygame.draw.polygon(screen, damage_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
             pygame.draw.rect(screen, damage_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
         else:
             pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
             pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
 
+        # draws the cannonball-ready indicator
         if cannon_is_avail:
             pygame.draw.circle(screen, border_color, (WIDTH-WIDTH/8,HEIGHT-HEIGHT/8), 50)
 
