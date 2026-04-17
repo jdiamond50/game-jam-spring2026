@@ -551,7 +551,7 @@ def game_over_loop(button_delay):
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
 
         lose_text = font.render('GAME OVER', True, (255, 215, 0))
-        kill_text = font.render(str(kill_count)+' Ships Sunk ', True, (255, 215, 0))
+        kill_text = font.render(str(kill_count)+' Ships Sunk', True, (255, 215, 0))
         screen.blit(lose_text,lose_text.get_rect(center=(WIDTH/2,120)))
         screen.blit(kill_text,kill_text.get_rect(center=(WIDTH/2,(HEIGHT)-120)))
 
