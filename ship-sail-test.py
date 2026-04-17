@@ -33,6 +33,7 @@ class Cannon(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(WIDTH/2, HEIGHT - 200))
         self.ud_angle = math.pi / 4
         self.lr_angle = 0
+        self.rect.top -= 50
     
     def update(self):
         row = int(16 * (self.ud_angle - 0.35) // (math.pi / 4 - 0.35))
@@ -53,7 +54,7 @@ class Cannonball(pygame.sprite.Sprite):
         rect = self.original_image.get_rect()
         self.aspect_ratio = rect.width / rect.height
         self.size = 100
-        self.pos = pygame.math.Vector3(0,20,-20) # changed from (0,1,-40)
+        self.pos = pygame.math.Vector3(0,30,-10) # changed from (0,20,-20)
         init_velocity = 13
         self.vel = pygame.math.Vector3(
             init_velocity*math.cos(cannon.ud_angle)*math.sin(cannon.lr_angle),
@@ -63,6 +64,7 @@ class Cannonball(pygame.sprite.Sprite):
         self.acc = pygame.math.Vector3(0,0,-0.5)
         self.fired = False
         update_rect(self)
+
     
     def update(self):
         self.pos += self.vel
@@ -72,6 +74,10 @@ class Cannonball(pygame.sprite.Sprite):
         if self.pos.z >= 0: 
             self.fired = True
         update_rect(self)
+        # if self.pos.y <= 40:
+        #     self.image.set_alpha(0)
+        # else:
+        #     self.image.set_alpha(255)
         if self.pos.z < 0 and self.fired: # cannonball hits the water
             pygame.mixer.Sound.play(sound_miss)
             self.kill()
