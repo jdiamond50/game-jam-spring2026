@@ -272,7 +272,7 @@ def gameplay_loop(cannon_cooldown = framerate*(3/2), game_time = 90*framerate, i
     """There are now 6 adjustable parameters for the gameplay_loop
 
 cannon_cooldown - is how often the cannon reloads
-game_time - is the lenght of each day
+game_time - is the length of each day
 island_health - is how much heath the island starts with
 max_ship_distance - is the furthest distance a new ship can spawn
 next_ship_time_randomness - can be between 1 & 2, 1 is defaultly random, 2 is no randomness (aka at 2 new ships will arrive at a constant rate)
