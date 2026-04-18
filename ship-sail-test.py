@@ -57,11 +57,11 @@ class Cannonball(pygame.sprite.Sprite):
         self.size = 100
         self.pos = pygame.math.Vector3(0,30,-10) # changed from (0,20,-20)
         init_velocity = 13
-        ship_rocking_adjust_angle = -0.05*math.sin(curr_time / rocking_rate)
+        ship_rocking_adjust_angle = 0.05*math.sin(curr_time / rocking_rate)
         self.vel = pygame.math.Vector3(
-            init_velocity*math.cos(cannon.ud_angle)*math.sin(cannon.lr_angle),
-            init_velocity*math.cos(cannon.ud_angle)*math.cos(cannon.lr_angle), 
-            init_velocity*math.sin(cannon.ud_angle)
+            init_velocity*math.cos(cannon.ud_angle+ship_rocking_adjust_angle)*math.sin(cannon.lr_angle),
+            init_velocity*math.cos(cannon.ud_angle+ship_rocking_adjust_angle)*math.cos(cannon.lr_angle), 
+            init_velocity*math.sin(cannon.ud_angle+ship_rocking_adjust_angle)
         )
         self.acc = pygame.math.Vector3(0,0,-0.5)
         self.fired = False
@@ -301,6 +301,8 @@ currently none of them actually change when leveling up
     ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT))
 
     on_gameplay_screen = True
+
+    curr_time = -1
 
     if current_level > framerate: # the level 60 clause
         next_ship_time = next_ship_time_randomness
