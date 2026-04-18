@@ -57,6 +57,7 @@ class Cannonball(pygame.sprite.Sprite):
         self.size = 100
         self.pos = pygame.math.Vector3(0,30,-10) # changed from (0,20,-20)
         init_velocity = 13
+        ship_rocking_adjust_angle = -0.05*math.sin(curr_time / 50)
         self.vel = pygame.math.Vector3(
             init_velocity*math.cos(cannon.ud_angle)*math.sin(cannon.lr_angle),
             init_velocity*math.cos(cannon.ud_angle)*math.cos(cannon.lr_angle), 
