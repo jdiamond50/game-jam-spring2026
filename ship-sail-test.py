@@ -240,6 +240,7 @@ def title_loop(button_delay):
                 ship_sink_anim.append(pygame.image.load('ship_animation/ship' + str(i) + ".png"))
                 
                 load_percent += 1/(60+17)
+                pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+100, 800, 200))
                 pygame.draw.rect(screen, island_color, (WIDTH/2-400, HEIGHT/2+100, 800*load_percent, 200))
                 percent_text = font.render(str(int(load_percent*10000)/100)+'%', True, (255, 215, 0))
                 screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
@@ -251,6 +252,7 @@ def title_loop(button_delay):
                 ending = ".png"
                 
                 load_percent += 1/(60+17)
+                pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+100, 800, 200))
                 pygame.draw.rect(screen, island_color, (WIDTH/2-400, HEIGHT/2+100, 800*load_percent, 200))
                 percent_text = font.render(str(int(load_percent*10000)/100)+'%', True, (255, 215, 0))
                 screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
