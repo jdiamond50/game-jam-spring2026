@@ -22,7 +22,8 @@ def update_rect(sprite):
     # location on screen
     lr_display_pos = math.atan(sprite.pos.x / sprite.pos.y) * (WIDTH / WIDTH_ANGLE) + (WIDTH / 2)
     ud_display_pos = math.atan(sprite.pos.z / math.sqrt(sprite.pos.x ** 2 + sprite.pos.y ** 2)) * (HEIGHT / HEIGHT_ANGLE) * (-1) + (HEIGHT / 2)
-    sprite.rect = sprite.image.get_rect(center=(lr_display_pos, ud_display_pos))
+    ship_rocking_adjust = 20*math.sin(curr_time / 50)
+    sprite.rect = sprite.image.get_rect(center=(lr_display_pos, ud_display_pos + ship_rocking_adjust))
 
 class Cannon(pygame.sprite.Sprite):
 
@@ -175,6 +176,7 @@ kill_count = 0
 
 run = True
 game_state = TITLE_SCREEN
+curr_time = -1 # measured in num frames
 
 def title_loop(button_delay):
     # this is probably too many global variables but if it works it works i guess
@@ -266,7 +268,6 @@ def title_loop(button_delay):
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
 
         pygame.display.flip() # update screen
-        
 
 def gameplay_loop(cannon_cooldown = framerate*(3/2), game_time = 90*framerate, island_health = 50, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
     """There are now 6 adjustable parameters for the gameplay_loop
@@ -283,7 +284,7 @@ the speed at which new ships arrive would still always be increasing so they sho
 
 currently none of them actually change when leveling up
 """
-    global run, game_state, ships, current_level, kill_count
+    global run, game_state, ships, current_level, kill_count, curr_time
 
     current_level += 1
 
@@ -302,8 +303,6 @@ currently none of them actually change when leveling up
         next_ship_time = next_ship_time_randomness
     else:
         next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((2*framerate)/current_level)) # [1 second, 2 seconds] decreases each level
-
-    curr_time = -1 # measured in num frames
     
     is_red_island = False # If the island is taking damage this tick
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
@@ -412,22 +411,24 @@ currently none of them actually change when leveling up
 
         # draw stuff
 
+        ship_rocking_adjust = 20*math.sin(curr_time / 50)
+
         curr_sky_color = night_sky_color
         curr_water_color = night_water_color
         if curr_time < game_time: 
             curr_sky_color = get_color_gradient(day_sky_color, night_sky_color, curr_time / game_time)
             curr_water_color = get_color_gradient(day_water_color, night_water_color, curr_time / game_time)
-        pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2))
-        pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
+        pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
+        pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
 
         # draws island & heath bar red or green
-        pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2,(initial_island_health*(WIDTH/200))+4, (HEIGHT/30)+4))
+        pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2+ship_rocking_adjust,(initial_island_health*(WIDTH/200))+4, (HEIGHT/30)+4))
         if is_red_island:
-            pygame.draw.polygon(screen, damage_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
-            pygame.draw.rect(screen, damage_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
+            pygame.draw.polygon(screen, damage_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2+ship_rocking_adjust], [WIDTH, 4*HEIGHT/7+ship_rocking_adjust], [WIDTH, 3*HEIGHT/7+ship_rocking_adjust]])
+            pygame.draw.rect(screen, damage_color, (WIDTH-(WIDTH/3),HEIGHT/5+ship_rocking_adjust,island_health*(WIDTH/200), HEIGHT/30))
         else:
-            pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
-            pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
+            pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2+ship_rocking_adjust], [WIDTH, 4*HEIGHT/7+ship_rocking_adjust], [WIDTH, 3*HEIGHT/7+ship_rocking_adjust]])
+            pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5+ship_rocking_adjust,island_health*(WIDTH/200), HEIGHT/30))
 
         active_sprites.draw(screen)
         cannonballs.draw(screen)
@@ -471,16 +472,16 @@ def next_level_loop(button_delay):
     
         # draw stuff
 
-        # pygame.draw.rect(screen, day_water_color, (0,0,WIDTH, HEIGHT)) # background
+        ship_rocking_adjust = 20*math.sin(curr_time / 50)
 
         # -- draw background --
 
         # draw background
-        pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2))
-        pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
+        pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
+        pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
 
         # draw island
-        pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
+        pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/+2+ship_rocking_adjust], [WIDTH, 4*HEIGHT/7+ship_rocking_adjust], [WIDTH, 3*HEIGHT/7+ship_rocking_adjust]])
 
         # draw ships
         ships.update(1,0)
@@ -545,12 +546,14 @@ def game_over_loop(button_delay):
 
         # -- draw background --
 
+        ship_rocking_adjust = 20*math.sin(curr_time / 50)
+
         # draw background
-        pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2))
-        pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2,WIDTH, HEIGHT/2))
+        pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
+        pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
 
         # draw island
-        pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
+        pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2+ship_rocking_adjust], [WIDTH, 4*HEIGHT/7+ship_rocking_adjust], [WIDTH, 3*HEIGHT/7+ship_rocking_adjust]])
 
         # draw ships
         ships.update(1,0)
