@@ -364,7 +364,7 @@ currently none of them actually change when leveling up
             # print("cannon lr_angle adjusted to ", cannon.lr_angle)
         
         if (next_ship_time == 0 and curr_time < game_time): # time to create another ship
-            y_dist = random.randint(50,max_ship_distance)
+            y_dist = random.randint(60,max_ship_distance)
             new_ship = Ship(y_dist)
             ships.add(new_ship)
             active_sprites.add(new_ship, layer=-y_dist)
