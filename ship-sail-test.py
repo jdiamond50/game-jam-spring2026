@@ -28,9 +28,9 @@ class Cannon(pygame.sprite.Sprite):
 
     def __init__(self):
         super().__init__()
-        self.image = pygame.transform.scale(pygame.image.load('cannon.png'), (400,400))
+        self.image = pygame.transform.scale(pygame.image.load('sprites/cannon.png'), (400,400))
         self.rect = self.image.get_rect()
-        self.rect = self.image.get_rect(center=(WIDTH/2, HEIGHT - 200))
+        self.rect = self.image.get_rect(center=(WIDTH/2+15, HEIGHT - 200))
         self.ud_angle = math.pi / 4
         self.lr_angle = 0
         self.rect.top -= 50
@@ -50,7 +50,7 @@ class Cannonball(pygame.sprite.Sprite):
 
     def __init__(self, cannon):
         super().__init__()
-        self.original_image = pygame.image.load('cannonball.jpg')
+        self.original_image = pygame.image.load('sprites/cannonball.jpg')
         rect = self.original_image.get_rect()
         self.aspect_ratio = rect.width / rect.height
         self.size = 100
@@ -293,6 +293,9 @@ currently none of them actually change when leveling up
     active_sprites.empty()
     cannonballs.empty()
 
+    ship_deck_img = pygame.transform.scale(pygame.image.load('sprites/ship_deck.png'), (WIDTH , WIDTH*(1355/3000)))
+    ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT))
+
     on_gameplay_screen = True
 
     if current_level > framerate: # the level 60 clause
@@ -426,13 +429,14 @@ currently none of them actually change when leveling up
             pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2], [WIDTH, 4*HEIGHT/7], [WIDTH, 3*HEIGHT/7]])
             pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5,island_health*(WIDTH/200), HEIGHT/30))
 
+        active_sprites.draw(screen)
+        cannonballs.draw(screen)
+        screen.blit(ship_deck_img, ship_deck_rect)
+        screen.blit(cannon.image, cannon.rect)
+
         # draws the cannonball-ready indicator
         if cannon_is_avail:
             pygame.draw.circle(screen, border_color, (WIDTH-WIDTH/8,HEIGHT-HEIGHT/8), 50)
-
-        active_sprites.draw(screen)
-        cannonballs.draw(screen)
-        screen.blit(cannon.image, cannon.rect)
 
         pygame.display.flip() # update screen
 
