@@ -181,6 +181,10 @@ run = True
 game_state = TITLE_SCREEN
 curr_time = -1 # measured in num frames
 
+ship_deck_img = pygame.transform.scale(pygame.image.load('sprites/ship_deck.png'), (WIDTH , WIDTH*(1355/3000)))
+ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT))
+cannon = Cannon()   
+
 def title_loop(button_delay):
     # this is probably too many global variables but if it works it works i guess
     global run, game_state, load_open, cannon_anim, ship_sink_anim, ship_sink_anim_length 
@@ -294,13 +298,9 @@ currently none of them actually change when leveling up
     current_level += 1
 
     cannonballs = pygame.sprite.Group()
-    cannon = Cannon()   
     ships.empty()
     active_sprites.empty()
     cannonballs.empty()
-
-    ship_deck_img = pygame.transform.scale(pygame.image.load('sprites/ship_deck.png'), (WIDTH , WIDTH*(1355/3000)))
-    ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT))
 
     on_gameplay_screen = True
 
@@ -450,8 +450,7 @@ currently none of them actually change when leveling up
 
 
 def next_level_loop(button_delay):
-    global run, game_state, current_level
-
+    global run, game_state, current_level, curr_time
 
     NEXT_LEVEL = 0
     QUIT = 1
@@ -459,6 +458,7 @@ def next_level_loop(button_delay):
 
     on_menu_screen = True
     while on_menu_screen:
+        curr_time += 1
         clock.tick(framerate)
         button_delay -= 1
         for event in pygame.event.get():
@@ -494,6 +494,10 @@ def next_level_loop(button_delay):
         ships.update(1,0)
         active_sprites.draw(screen)
 
+        # draw deck + cannon
+        screen.blit(ship_deck_img, ship_deck_rect)
+        screen.blit(cannon.image, cannon.rect)
+
         # -- draw buttons -- 
         
         # highlight currently selected button
@@ -519,7 +523,7 @@ def next_level_loop(button_delay):
         pygame.display.flip() # update screen
 
 def game_over_loop(button_delay):
-    global run, game_state, current_level, kill_count
+    global run, game_state, current_level, kill_count, curr_time
 
     current_level = 0
 
@@ -529,7 +533,9 @@ def game_over_loop(button_delay):
 
     on_game_over_screen = True
     while on_game_over_screen:
+
         clock.tick(framerate)
+        curr_time += 1
         button_delay -= 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -565,6 +571,10 @@ def game_over_loop(button_delay):
         # draw ships
         ships.update(1,0)
         active_sprites.draw(screen)
+
+        # draw deck + cannon
+        screen.blit(ship_deck_img, ship_deck_rect)
+        screen.blit(cannon.image, cannon.rect)
 
         # -- draw buttons -- 
         
