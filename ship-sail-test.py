@@ -22,7 +22,7 @@ def update_rect(sprite):
     # location on screen
     lr_display_pos = math.atan(sprite.pos.x / sprite.pos.y) * (WIDTH / WIDTH_ANGLE) + (WIDTH / 2)
     ud_display_pos = math.atan(sprite.pos.z / math.sqrt(sprite.pos.x ** 2 + sprite.pos.y ** 2)) * (HEIGHT / HEIGHT_ANGLE) * (-1) + (HEIGHT / 2)
-    ship_rocking_adjust = 20*math.sin(curr_time / 50)
+    ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)
     sprite.rect = sprite.image.get_rect(center=(lr_display_pos, ud_display_pos + ship_rocking_adjust))
 
 class Cannon(pygame.sprite.Sprite):
@@ -57,7 +57,7 @@ class Cannonball(pygame.sprite.Sprite):
         self.size = 100
         self.pos = pygame.math.Vector3(0,30,-10) # changed from (0,20,-20)
         init_velocity = 13
-        ship_rocking_adjust_angle = -0.05*math.sin(curr_time / 50)
+        ship_rocking_adjust_angle = -0.05*math.sin(curr_time / rocking_rate)
         self.vel = pygame.math.Vector3(
             init_velocity*math.cos(cannon.ud_angle)*math.sin(cannon.lr_angle),
             init_velocity*math.cos(cannon.ud_angle)*math.cos(cannon.lr_angle), 
@@ -171,6 +171,8 @@ load_open = 0 # variable for loading images on startup
 cannon_anim = []
 ship_sink_anim = []
 ship_sink_anim_length = 60
+
+rocking_rate = 50
 
 current_level = 0
 kill_count = 0
@@ -412,7 +414,7 @@ currently none of them actually change when leveling up
 
         # draw stuff
 
-        ship_rocking_adjust = 20*math.sin(curr_time / 50)
+        ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)
 
         curr_sky_color = night_sky_color
         curr_water_color = night_water_color
@@ -473,7 +475,7 @@ def next_level_loop(button_delay):
     
         # draw stuff
 
-        ship_rocking_adjust = 20*math.sin(curr_time / 50)
+        ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)
 
         # -- draw background --
 
@@ -547,7 +549,7 @@ def game_over_loop(button_delay):
 
         # -- draw background --
 
-        ship_rocking_adjust = 20*math.sin(curr_time / 50)
+        ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)
 
         # draw background
         pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
