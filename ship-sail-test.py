@@ -181,8 +181,8 @@ run = True
 game_state = TITLE_SCREEN
 curr_time = -1 # measured in num frames
 
-ship_deck_img = pygame.transform.scale(pygame.image.load('sprites/ship_deck.png'), (WIDTH , WIDTH*(1355/3000)))
-ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT))
+ship_deck_img = pygame.transform.scale(pygame.image.load('sprites/ship_deck.png'), (WIDTH , WIDTH*(1159/3579)))
+ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT+100))
 cannon = Cannon()   
 
 def title_loop(button_delay):
