@@ -22,7 +22,7 @@ for i in range(1,7):
         cloud_sprites.append(pygame.image.load("sprites/clouds/cloud" + str(i) + str(j) + ".png"))
 
 def init_clouds():
-    for i in range(50):
+    for i in range(35):
         new_cloud = Cloud(random.randint(0, WIDTH), random.randint(0, 300))
         clouds.add(new_cloud)
         active_sprites.add(new_cloud)
@@ -140,11 +140,15 @@ class Cloud(pygame.sprite.Sprite):
         self.rect = self.original_image.get_rect(midright=(x_val, y_val))
         self.vel = 1
     
-    def update(self):
+    def update(self, t):
         ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)
         self.rect.x += self.vel
         self.rect.y = self.y_val + ship_rocking_adjust
         self.image = pygame.transform.scale(self.original_image, (self.size, self.size / self.aspect_ratio))
+        colorImage = pygame.Surface(self.image.get_size()).convert_alpha()
+        color = get_color_gradient((255, 255, 255), (43, 43, 43), t)
+        colorImage.fill(color)
+        self.image.blit(colorImage, (0,0), special_flags = pygame.BLEND_RGBA_MULT)
         if self.rect.x > WIDTH:
             self.kill()
 
@@ -314,7 +318,7 @@ def title_loop(button_delay):
 
         pygame.display.flip() # update screen
 
-def gameplay_loop(cannon_cooldown = framerate*(3/2), game_time = 10*framerate, island_health = 50, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
+def gameplay_loop(cannon_cooldown = framerate*(3/2), game_time = 90*framerate, island_health = 50, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
     """There are now 6 adjustable parameters for the gameplay_loop
 
 cannon_cooldown - is how often the cannon reloads
@@ -432,7 +436,7 @@ currently none of them actually change when leveling up
 
         ships.update(curr_time, game_time)
         cannonballs.update()
-        clouds.update()
+        clouds.update(curr_time / game_time)
         cannon.update()
 
         for ship in ships:
@@ -475,6 +479,11 @@ currently none of them actually change when leveling up
         pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
         pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
 
+        active_sprites.draw(screen)
+        cannonballs.draw(screen)
+        screen.blit(ship_deck_img, ship_deck_rect)
+        screen.blit(cannon.image, cannon.rect)
+
         # draws island & heath bar red or green
         pygame.draw.rect(screen, border_color, ((WIDTH-(WIDTH/3))-2,(HEIGHT/5)-2+ship_rocking_adjust,(initial_island_health*(WIDTH/200))+4, (HEIGHT/30)+4))
         if is_red_island:
@@ -483,11 +492,6 @@ currently none of them actually change when leveling up
         else:
             pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2+ship_rocking_adjust], [WIDTH, 4*HEIGHT/7+ship_rocking_adjust], [WIDTH, 3*HEIGHT/7+ship_rocking_adjust]])
             pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5+ship_rocking_adjust,island_health*(WIDTH/200), HEIGHT/30))
-
-        active_sprites.draw(screen)
-        cannonballs.draw(screen)
-        screen.blit(ship_deck_img, ship_deck_rect)
-        screen.blit(cannon.image, cannon.rect)
 
         # draws the cannonball-ready indicator
         if cannon_is_avail:
@@ -542,7 +546,7 @@ def next_level_loop(button_delay):
         # draw background
         pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
         pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
-        clouds.update()
+        clouds.update(1)
 
         # draw island
         pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/+2+ship_rocking_adjust], [WIDTH, 4*HEIGHT/7+ship_rocking_adjust], [WIDTH, 3*HEIGHT/7+ship_rocking_adjust]])
@@ -628,7 +632,7 @@ def game_over_loop(button_delay):
         ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)
 
         # draw background
-        clouds.update()
+        clouds.update(1)
         pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
         pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
 
