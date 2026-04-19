@@ -11,7 +11,21 @@ HEIGHT_ANGLE = math.pi/2 # 90 degrees
 
 pygame.init()
 ships = pygame.sprite.Group()
+clouds = pygame.sprite.Group()
 active_sprites = pygame.sprite.LayeredUpdates() # contains ships and cannonballs
+
+# load cloud images
+
+cloud_sprites = []
+for i in range(1,7):
+    for j in range(1,3):
+        cloud_sprites.append(pygame.image.load("sprites/clouds/cloud" + str(i) + str(j) + ".png"))
+
+def init_clouds():
+    for i in range(50):
+        new_cloud = Cloud(random.randint(0, WIDTH), random.randint(0, 300))
+        clouds.add(new_cloud)
+        active_sprites.add(new_cloud)
 
 def update_rect(sprite): 
     # image scaling
@@ -114,6 +128,26 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
             self.aspect_ratio = rect.width / rect.height
         update_rect(self)
 
+class Cloud(pygame.sprite.Sprite):
+    def __init__(self, x_val, y_val):
+        super().__init__()
+        self.y_val = y_val
+        self.size = random.randint(50, 200)
+        self.original_image = pygame.image.load("sprites/clouds/cloud" + str(random.randint(1,6)) + str(random.randint(1,2)) + ".png")
+        self.rect = self.original_image.get_rect()
+        self.aspect_ratio = self.rect.width / self.rect.height
+        self.original_image = pygame.transform.scale(self.original_image, (self.size, self.size / self.aspect_ratio))
+        self.rect = self.original_image.get_rect(midright=(x_val, y_val))
+        self.vel = 1
+    
+    def update(self):
+        ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)
+        self.rect.x += self.vel
+        self.rect.y = self.y_val + ship_rocking_adjust
+        self.image = pygame.transform.scale(self.original_image, (self.size, self.size / self.aspect_ratio))
+        if self.rect.x > WIDTH:
+            self.kill()
+
 # sound effect audio files
 
 sound_hit = pygame.mixer.Sound("sound_files/hit.wav")
@@ -184,6 +218,8 @@ curr_time = -1 # measured in num frames
 ship_deck_img = pygame.transform.scale(pygame.image.load('sprites/ship_deck.png'), (WIDTH , WIDTH*(1159/3579)))
 ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT+100))
 cannon = Cannon()   
+
+next_cloud_time = 1
 
 def title_loop(button_delay):
     # this is probably too many global variables but if it works it works i guess
@@ -278,7 +314,7 @@ def title_loop(button_delay):
 
         pygame.display.flip() # update screen
 
-def gameplay_loop(cannon_cooldown = framerate*(3/2), game_time = 90*framerate, island_health = 50, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
+def gameplay_loop(cannon_cooldown = framerate*(3/2), game_time = 10*framerate, island_health = 50, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
     """There are now 6 adjustable parameters for the gameplay_loop
 
 cannon_cooldown - is how often the cannon reloads
@@ -293,7 +329,7 @@ the speed at which new ships arrive would still always be increasing so they sho
 
 currently none of them actually change when leveling up
 """
-    global run, game_state, ships, current_level, kill_count, curr_time
+    global run, game_state, ships, current_level, kill_count, curr_time, next_cloud_time
 
     current_level += 1
 
@@ -301,6 +337,8 @@ currently none of them actually change when leveling up
     ships.empty()
     active_sprites.empty()
     cannonballs.empty()
+
+    init_clouds()
 
     on_gameplay_screen = True
 
@@ -382,10 +420,19 @@ currently none of them actually change when leveling up
             else:
                 next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((2*framerate)/current_level)) # set countdown for next ship
 
+        if (next_cloud_time == 0):
+            y_dist = random.randint(0, 300)
+            new_cloud = Cloud(0, y_dist)
+            clouds.add(new_cloud)
+            active_sprites.add(new_cloud, layer=-y_dist)
+            next_cloud_time = random.randint(30, 120)
+
         next_ship_time -= 1
+        next_cloud_time -= 1
 
         ships.update(curr_time, game_time)
         cannonballs.update()
+        clouds.update()
         cannon.update()
 
         for ship in ships:
@@ -450,7 +497,7 @@ currently none of them actually change when leveling up
 
 
 def next_level_loop(button_delay):
-    global run, game_state, current_level, curr_time
+    global run, game_state, current_level, curr_time, next_cloud_time
 
     NEXT_LEVEL = 0
     QUIT = 1
@@ -476,6 +523,15 @@ def next_level_loop(button_delay):
                     current_button_selected = QUIT
                 elif event.key == pygame.K_UP:
                     current_button_selected = NEXT_LEVEL
+        
+        if (next_cloud_time == 0):
+            y_dist = random.randint(0, 300)
+            new_cloud = Cloud(0, y_dist)
+            clouds.add(new_cloud)
+            active_sprites.add(new_cloud, layer=-y_dist)
+            next_cloud_time = random.randint(30, 120)
+
+        next_cloud_time -= 1
     
         # draw stuff
 
@@ -486,6 +542,7 @@ def next_level_loop(button_delay):
         # draw background
         pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
         pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
+        clouds.update()
 
         # draw island
         pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/+2+ship_rocking_adjust], [WIDTH, 4*HEIGHT/7+ship_rocking_adjust], [WIDTH, 3*HEIGHT/7+ship_rocking_adjust]])
@@ -523,7 +580,7 @@ def next_level_loop(button_delay):
         pygame.display.flip() # update screen
 
 def game_over_loop(button_delay):
-    global run, game_state, current_level, kill_count, curr_time
+    global run, game_state, current_level, kill_count, curr_time, next_cloud_time
 
     current_level = 0
 
@@ -552,6 +609,15 @@ def game_over_loop(button_delay):
                     current_button_selected = QUIT
                 elif event.key == pygame.K_UP:
                     current_button_selected = PLAY_AGAIN
+
+        if (next_cloud_time == 0):
+            y_dist = random.randint(0, 300)
+            new_cloud = Cloud(0, y_dist)
+            clouds.add(new_cloud)
+            active_sprites.add(new_cloud, layer=-y_dist)
+            next_cloud_time = random.randint(30, 120)
+
+        next_cloud_time -= 1
     
         # draw stuff
 
@@ -562,6 +628,7 @@ def game_over_loop(button_delay):
         ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)
 
         # draw background
+        clouds.update()
         pygame.draw.rect(screen, night_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
         pygame.draw.rect(screen, night_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
 
