@@ -242,8 +242,8 @@ def title_loop(button_delay):
 
     PLAY = 0
     QUIT = 1
-    RAPIDFIRE = 2
-    SETTINGS = 3
+    RAPIDFIRE = 2 # rapid fire mode sets all the 'level skills' to their max, including the firing cooldown
+    SETTINGS = 3 # doesn't do anything yet, would maybe like to add a sound/music toggle
     current_button_selected = PLAY
 
     on_title_screen = True
@@ -379,6 +379,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
     curr_cooldown = 0
     cannon_is_avail = True
 
+    #adjusts the initial parameter values based on the current 'skill level'
     for i in range(level_skills[0]):
         cannon_cooldown -= (framerate*(1/6))
     for i in range(level_skills[1]):
@@ -578,7 +579,7 @@ def next_level_loop(button_delay):
             if event.type == pygame.KEYDOWN and button_delay <= 0:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == NEXT_LEVEL:
-                        if level_skills[0] < 9:
+                        if level_skills[0] < 9: # currently the skills will all increase by one for each day completed
                             for i in range(6):
                                 level_skills[i] += 1
                         game_state = GAMEPLAY_SCREEN
