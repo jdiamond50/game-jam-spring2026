@@ -389,14 +389,14 @@ all skills can range from level 1 to level 10, defaulting to level 1
     for i in range(level_skills[3]):
         max_ship_distance -= (10)
     for i in range(level_skills[4]):
-        next_ship_time_randomness += (1/9)
+        next_ship_time_randomness += (1/3)
     for i in range(level_skills[5]):
         enemy_fire_rate += (framerate*(1/10))
 
     if current_level > framerate: # the level 60 clause
         next_ship_time = next_ship_time_randomness
     else:
-        next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((2*framerate)/current_level)) # [1 second, 2 seconds] decreases each level
+        next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((4*framerate)/current_level)) # [1 second, 4 seconds] decreases each level
     
     is_red_island = False # If the island is taking damage this tick
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
@@ -472,7 +472,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
             if current_level > framerate:
                 next_ship_time = 1
             else:
-                next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((2*framerate)/current_level)) # set countdown for next ship
+                next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((4*framerate)/current_level)) # set countdown for next ship
 
         if (next_cloud_time == 0):
             y_dist = random.randint(0, 300)
