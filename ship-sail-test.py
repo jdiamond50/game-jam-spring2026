@@ -407,12 +407,12 @@ def title_loop(button_delay):
         if not is_start_animation_playing:
             play_text = font.render('PLAY', True, (255, 215, 0))
             quit_text = font.render('QUIT', True, (255, 215, 0))
-            rapid_text = font.render('RAPID FIRE MODE', True, (255, 215, 0))
+            rapid_text = font.render('RAPID', True, (255, 215, 0))
             sett_text = font.render('SETTINGS', True, (255, 215, 0))
-            screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-200)))
-            screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2-25)))
-            screen.blit(rapid_text,rapid_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
-            screen.blit(sett_text,sett_text.get_rect(center=(WIDTH/2,HEIGHT/2+325)))
+            screen.blit(play_text,play_text.get_rect(center=(WIDTH/2-300,HEIGHT-100)))
+            screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2-70,HEIGHT-100)))
+            screen.blit(rapid_text,rapid_text.get_rect(center=(WIDTH/2+150,HEIGHT-100)))
+            screen.blit(sett_text,sett_text.get_rect(center=(WIDTH/2+410,HEIGHT-100)))
 
         pygame.display.flip() # update screen
 
