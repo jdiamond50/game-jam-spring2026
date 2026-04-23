@@ -163,10 +163,14 @@ sound_begin = 0
 sound_lose_game = 0
 sound_win_level = 0
 
-#pygame.mixer.music.load("sound_files/music.wav")
+#pygame.mixer.music.load("sound_files/PiRat.wav")
 
-sound_fire.set_volume(.6)
-sound_miss.set_volume(.6)
+sound_fire.set_volume(.3)
+sound_miss.set_volume(.3)
+sound_island_hurt.set_volume(.6)
+sound_hit.set_volume(.6)
+
+volume_state = [1,1] # [sfx volume, music volume]
 
 # events
 
@@ -206,6 +210,7 @@ TITLE_SCREEN = 0
 GAMEPLAY_SCREEN = 1
 GAME_OVER_SCREEN = 2
 NEXT_LEVEL_SCREEN = 3
+SETTINGS_SCREEN = 4
 
 load_open = 0 # variable for loading images on startup
 cannon_anim = []
@@ -245,7 +250,7 @@ def title_loop(button_delay):
     PLAY = 0
     QUIT = 1
     RAPIDFIRE = 2 # rapid fire mode sets all the 'level skills' to their max, including the firing cooldown
-    SETTINGS = 3 # doesn't do anything yet, would maybe like to add a sound/music toggle
+    SETTINGS = 3 
     current_button_selected = PLAY
 
     on_title_screen = True
@@ -259,6 +264,9 @@ def title_loop(button_delay):
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == PLAY:
                         game_state = GAMEPLAY_SCREEN
+                        on_title_screen = False
+                    elif current_button_selected == SETTINGS:
+                        game_state = SETTINGS_SCREEN
                         on_title_screen = False
                     elif current_button_selected == RAPIDFIRE:
                         for i in range(6):
@@ -340,7 +348,118 @@ def title_loop(button_delay):
         play_text = font.render('PLAY', True, (255, 215, 0))
         quit_text = font.render('QUIT', True, (255, 215, 0))
         rapid_text = font.render('RAPID FIRE MODE', True, (255, 215, 0))
-        sett_text = font.render('SETTINGS', True, (255, 215, 0))
+        sett_text = font.render('SOUND SETTINGS', True, (255, 215, 0))
+        screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-200)))
+        screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2-25)))
+        screen.blit(rapid_text,rapid_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
+        screen.blit(sett_text,sett_text.get_rect(center=(WIDTH/2,HEIGHT/2+325)))
+        
+
+        pygame.display.flip() # update screen
+
+def settings_loop(button_delay):
+    global run, game_state, load_open, volume_state
+
+    RETURN = 0
+    SOUND_FX = 1
+    MUSIC = 2 # rapid fire mode sets all the 'level skills' to their max, including the firing cooldown
+    QUIT = 3 # doesn't do anything yet, would maybe like to add a sound/music toggle
+    current_button_selected = RETURN
+
+    if volume_state[0] % 3 == 1:
+        sfx_vol = "NORMAL"
+    elif volume_state[0] % 3 == 2:
+        sfx_vol = "QUIET"
+    else:
+        sfx_vol = "OFF"
+
+    if volume_state[1] % 3 == 1:
+        msc_vol = "NORMAL"
+    elif volume_state[1] % 3 == 2:
+        msc_vol = "QUIET"
+    else:
+        msc_vol = "OFF"
+    
+    on_sett_screen = True
+    while on_sett_screen:
+        button_delay -= 1
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                on_sett_screen = False
+                run = False
+            if event.type == pygame.KEYDOWN and button_delay <= 0:
+                if event.key == pygame.K_SPACE:
+                    if current_button_selected == RETURN:
+                        game_state = TITLE_SCREEN
+                        on_sett_screen = False
+                    elif current_button_selected == SOUND_FX:
+                        volume_state[0] += 1
+                        if volume_state[0] % 3 == 2:
+                            sfx_vol = "QUIET"
+                            sound_fire.set_volume(.1)
+                            sound_miss.set_volume(.1)
+                            sound_island_hurt.set_volume(.2)
+                            sound_hit.set_volume(.2)
+                        elif volume_state[0] % 3 == 0:
+                            sfx_vol = "OFF"
+                            sound_fire.set_volume(0)
+                            sound_miss.set_volume(0)
+                            sound_island_hurt.set_volume(0)
+                            sound_hit.set_volume(0)
+                        else:
+                            sfx_vol = "NORMAL"
+                            sound_fire.set_volume(.3)
+                            sound_miss.set_volume(.3)
+                            sound_island_hurt.set_volume(.6)
+                            sound_hit.set_volume(.6)
+                    elif current_button_selected == MUSIC:
+                        volume_state[1] += 1
+                        if volume_state[1] % 3 == 2:
+                            msc_vol = "QUIET"
+                            pygame.mixer.music.set_volume(.4)
+                        elif volume_state[1] % 3 == 0:
+                            msc_vol = "OFF"
+                            pygame.mixer.music.set_volume(0)
+                        else:
+                            msc_vol = "NORMAL"
+                            pygame.mixer.music.set_volume(1)
+                    elif current_button_selected == QUIT:
+                        pygame.event.post(pygame.event.Event(pygame.QUIT)) 
+                elif event.key == pygame.K_DOWN and current_button_selected != 3:
+                    current_button_selected += 1
+                elif event.key == pygame.K_UP and current_button_selected != 0:
+                    current_button_selected -= 1
+    
+        # draw stuff
+
+        pygame.draw.rect(screen, day_water_color, (0,0,WIDTH, HEIGHT)) # background
+
+        # -- draw buttons -- 
+        
+        # highlight currently selected button
+        if current_button_selected == RETURN:
+            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2-255, 810, 110)) # return button highlight
+        if current_button_selected == SOUND_FX:
+            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2-80, 810, 110)) # sound button highlight
+        if current_button_selected == MUSIC:
+            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2+95, 810, 110)) # music button highlight
+        if current_button_selected == QUIT:
+            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2+270, 810, 110)) # quit button highlight
+
+        # button background
+        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2-250, 800, 100)) # return button
+        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2-75, 800, 100)) # sound button
+        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+100, 800, 100)) # music button
+        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+275, 800, 100)) # quit button
+
+        # button text
+        font = pygame.font.Font('PirateJack-lglRX.otf',85) # Pirate Jack by font by Tigade Std
+        
+        play_text = font.render('RETURN TO MENU', True, (255, 215, 0))
+        quit_text = font.render('SOUND EFFECTS = '+sfx_vol, True, (255, 215, 0))
+        rapid_text = font.render('MUSIC = '+msc_vol, True, (255, 215, 0))
+        sett_text = font.render('QUIT', True, (255, 215, 0))
+        
         screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-200)))
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2-25)))
         screen.blit(rapid_text,rapid_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
@@ -421,8 +540,8 @@ all skills can range from level 1 to level 10, defaulting to level 1
     if curr_time == -1:
         initial_island_health = island_health
     
-    #if current_level == 1 and curr_time == -1: # sets the kill count to 0 on day 1
-    #    kill_count = 0
+    if current_level == 1 and curr_time == -1: # sets the kill count to 0 on day 1
+        kill_count = 0
     #    pygame.mixer.music.play(-1)
     #elif curr_time == -1:
     #    pygame.mixer.music.unpause()
@@ -768,6 +887,8 @@ while run: # the button_delay times prevent accidental button selecing
         gameplay_loop()
     elif (game_state == TITLE_SCREEN):
         title_loop(10)
+    elif (game_state == SETTINGS_SCREEN):
+        settings_loop(20)
     elif (game_state == NEXT_LEVEL_SCREEN):
         next_level_loop(20)
     elif (game_state == GAME_OVER_SCREEN):
