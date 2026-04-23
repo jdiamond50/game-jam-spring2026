@@ -31,6 +31,10 @@ for i in range(4):
     chest_sprites.append(anim)
 chest_sprites[0].append(pygame.image.load("chest_anims/chest_1_anim/0.png"))
 
+intro_anim = []
+for i in range(1, 34):
+    intro_anim.append(pygame.image.load("intro_anim/" + str(i) + ".png"))
+
 def init_clouds():
     for i in range(35):
         new_cloud = Cloud(random.randint(0, WIDTH), random.randint(0, 300))
@@ -229,8 +233,8 @@ run = True
 game_state = TITLE_SCREEN
 curr_time = -1 # measured in num frames
 
-ship_deck_img = pygame.transform.scale(pygame.image.load('sprites/ship_deck.png'), (WIDTH , WIDTH*(1159/3579)))
-ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT+100))
+ship_deck_img = pygame.transform.scale(pygame.image.load("ship_deck.png"), (WIDTH, HEIGHT))
+# ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT+100))
 cannon = Cannon()   
 
 next_cloud_time = 1
@@ -248,7 +252,7 @@ level_skills = [0,0,0,0,0,0]
 
 def title_loop(button_delay):
     # this is probably too many global variables but if it works it works i guess -- it definitely is :D
-    global run, game_state, load_open, cannon_anim, ship_sink_anim, ship_sink_anim_length, chest_sprites, curr_time
+    global run, game_state, load_open, cannon_anim, ship_sink_anim, ship_sink_anim_length, chest_sprites, curr_time, intro_anim, next_cloud_time
 
     PLAY = 0
     QUIT = 1
@@ -257,6 +261,15 @@ def title_loop(button_delay):
     current_button_selected = PLAY
     prev_button_selected = -1
     chest_anim_frames = [0,0,0,0]
+    is_start_animation_playing = False
+    curr_intro_anim_frame = 0
+    button_pressed = -1
+    for sprite in active_sprites:
+        if isinstance(sprite, Ship):
+            active_sprites.remove(sprite)
+            sprite.kill()
+    init_clouds()
+    
 
     on_title_screen = True
     while on_title_screen:
@@ -270,13 +283,11 @@ def title_loop(button_delay):
             if event.type == pygame.KEYDOWN and button_delay <= 0:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == PLAY:
-                        game_state = GAMEPLAY_SCREEN
-                        on_title_screen = False
+                        button_pressed = PLAY
+                        is_start_animation_playing = True
                     elif current_button_selected == RAPIDFIRE:
-                        for i in range(6):
-                            level_skills[i] = 9
-                        game_state = GAMEPLAY_SCREEN
-                        on_title_screen = False
+                        button_pressed = RAPIDFIRE
+                        is_start_animation_playing = True
                     elif current_button_selected == QUIT:
                         pygame.event.post(pygame.event.Event(pygame.QUIT)) 
                 elif event.key == pygame.K_RIGHT and current_button_selected != 3:
@@ -350,6 +361,14 @@ def title_loop(button_delay):
                 if i == 7:
                     cannon_anim[i].append(pygame.image.load(dir_name + "/img_050" + ending))
 
+        if (next_cloud_time == 0):
+            y_dist = random.randint(0, 300)
+            new_cloud = Cloud(0, y_dist)
+            clouds.add(new_cloud)
+            active_sprites.add(new_cloud, layer=-y_dist)
+            next_cloud_time = random.randint(30, 120)
+        next_cloud_time -= 1
+
         curr_time += 1
         
         ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)     
@@ -357,22 +376,43 @@ def title_loop(button_delay):
         curr_water_color = day_water_color
         pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
         pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
+        pygame.draw.polygon(screen, island_color, [[WIDTH-(2*WIDTH/5), HEIGHT/2+ship_rocking_adjust], [WIDTH, 4*HEIGHT/7+ship_rocking_adjust], [WIDTH, 3*HEIGHT/7+ship_rocking_adjust]])
+        clouds.update(0)
+        cannon.update()
+        active_sprites.draw(screen)
         curr_chest_image = chest_sprites[current_button_selected][chest_anim_frames[current_button_selected]]
-        if (chest_anim_frames[prev_button_selected] > 0):
+        if is_start_animation_playing:
+            curr_chest_image = intro_anim[int(curr_intro_anim_frame)]
+            curr_intro_anim_frame += 0.5
+            if (curr_intro_anim_frame > len(intro_anim) - 1):
+                if button_pressed == PLAY:
+                    game_state = GAMEPLAY_SCREEN
+                    on_title_screen = False
+                elif button_pressed == RAPIDFIRE:
+                    for i in range(6):
+                        level_skills[i] = 9
+                    game_state = GAMEPLAY_SCREEN
+                    on_title_screen = False
+            if (chest_anim_frames[current_button_selected] > 0):
+                curr_chest_image = chest_sprites[current_button_selected][chest_anim_frames[current_button_selected]]
+                chest_anim_frames[current_button_selected] -= 1
+                curr_intro_anim_frame -= 0.5
+        elif (chest_anim_frames[prev_button_selected] > 0):
             curr_chest_image = chest_sprites[prev_button_selected][chest_anim_frames[prev_button_selected]]
             chest_anim_frames[prev_button_selected] -= 1
         elif chest_anim_frames[current_button_selected] < 10:
             chest_anim_frames[current_button_selected] += 1
         screen.blit(curr_chest_image, curr_chest_image.get_rect())
         
-        play_text = font.render('PLAY', True, (255, 215, 0))
-        quit_text = font.render('QUIT', True, (255, 215, 0))
-        rapid_text = font.render('RAPID FIRE MODE', True, (255, 215, 0))
-        sett_text = font.render('SETTINGS', True, (255, 215, 0))
-        screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-200)))
-        screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2-25)))
-        screen.blit(rapid_text,rapid_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
-        screen.blit(sett_text,sett_text.get_rect(center=(WIDTH/2,HEIGHT/2+325)))
+        if not is_start_animation_playing:
+            play_text = font.render('PLAY', True, (255, 215, 0))
+            quit_text = font.render('QUIT', True, (255, 215, 0))
+            rapid_text = font.render('RAPID FIRE MODE', True, (255, 215, 0))
+            sett_text = font.render('SETTINGS', True, (255, 215, 0))
+            screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-200)))
+            screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2-25)))
+            screen.blit(rapid_text,rapid_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
+            screen.blit(sett_text,sett_text.get_rect(center=(WIDTH/2,HEIGHT/2+325)))
 
         pygame.display.flip() # update screen
 
@@ -391,22 +431,26 @@ the speed at which new ships arrive would still always be increasing so they sho
 
 all skills can range from level 1 to level 10, defaulting to level 1
 """
-    global run, game_state, ships, current_level, kill_count, curr_time, next_cloud_time, level_skills
+    global run, game_state, ships, current_level, kill_count, curr_time, next_cloud_time, level_skills, chest_sprites
 
     current_level += 1
 
     cannonballs = pygame.sprite.Group()
     ships.empty()
-    active_sprites.empty()
+    # active_sprites.empty()
+    for sprite in active_sprites:
+        if isinstance(sprite, Ship):
+            active_sprites.remove(sprite)
+            sprite.kill()
     cannonballs.empty()
-
-    init_clouds()
 
     on_gameplay_screen = True
 
     curr_time = -1
     curr_cooldown = 0
     cannon_is_avail = True
+    cannon.ud_angle = math.pi / 4
+    cannon.lr_angle = 0.1
 
     #adjusts the initial parameter values based on the current 'skill level'
     for i in range(level_skills[0]):
@@ -574,7 +618,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
             pygame.draw.rect(screen, island_color, (WIDTH-(WIDTH/3),HEIGHT/5+ship_rocking_adjust,island_health*(WIDTH/200), HEIGHT/30))
 
         cannonballs.draw(screen)
-        screen.blit(ship_deck_img, ship_deck_rect)
+        screen.blit(ship_deck_img, ship_deck_img.get_rect())
         screen.blit(cannon.image, cannon.rect)
 
         # draws the cannonball-ready indicator
@@ -648,7 +692,7 @@ def next_level_loop(button_delay):
         active_sprites.draw(screen)
 
         # draw deck + cannon
-        screen.blit(ship_deck_img, ship_deck_rect)
+        screen.blit(ship_deck_img, ship_deck_img.get_rect())
         screen.blit(cannon.image, cannon.rect)
 
         # -- draw buttons -- 
@@ -737,7 +781,7 @@ def game_over_loop(button_delay):
         active_sprites.draw(screen)
 
         # draw deck + cannon
-        screen.blit(ship_deck_img, ship_deck_rect)
+        screen.blit(ship_deck_img, ship_deck_img.get_rect())
         screen.blit(cannon.image, cannon.rect)
 
         # -- draw buttons -- 
