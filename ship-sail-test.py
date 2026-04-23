@@ -163,6 +163,8 @@ sound_begin = 0
 sound_lose_game = 0
 sound_win_level = 0
 
+#pygame.mixer.music.load("sound_files/music.wav")
+
 sound_fire.set_volume(.6)
 sound_miss.set_volume(.6)
 
@@ -347,7 +349,7 @@ def title_loop(button_delay):
 
         pygame.display.flip() # update screen
 
-def gameplay_loop(cannon_cooldown = framerate*(3/2), game_time = 90*framerate, island_health = 36, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
+def gameplay_loop(cannon_cooldown = (3/2)*framerate, game_time = 60*framerate, island_health = 36, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
     """There are now 6 adjustable parameters for the gameplay_loop
 
 cannon_cooldown - is how often the cannon reloads
@@ -380,21 +382,37 @@ all skills can range from level 1 to level 10, defaulting to level 1
     cannon_is_avail = True
 
     #adjusts the initial parameter values based on the current 'skill level'
+    for i in range(6):
+        if level_skills[i] > 9:
+            level_skills[i] = 9
+            
+    #print("cannon_cooldown",1,cannon_cooldown)
     for i in range(level_skills[0]):
-        cannon_cooldown -= (framerate*(1/6))
+        cannon_cooldown -= int((framerate*(3/2))/9) # assumes the framerate is a multiple of 30
+    #    print("cannon_cooldown",i+2,cannon_cooldown)
+    #print('game_time',1,game_time)
     for i in range(level_skills[1]):
-        game_time -= (5*framerate)
+        game_time -= int(game_time/23)
+    #    print('game_time',i+2,game_time)
+    #print('island_health',1,island_health)
     for i in range(level_skills[2]):
-        island_health += (2)
+        island_health += int(island_health/20)
+    #    print('island_health',i+2,island_health)
+    #print('max_ship_distance',1,max_ship_distance)
     for i in range(level_skills[3]):
-        max_ship_distance -= (10)
+        max_ship_distance -= int(max_ship_distance/15)
+    #    print('max_ship_distance',i+2,max_ship_distance)
+    #print('next_ship_time_randomness',1,next_ship_time_randomness)
     for i in range(level_skills[4]):
-        next_ship_time_randomness += (1/3)
+        next_ship_time_randomness += (1/3) #should always max at 4
+    #    print('next_ship_time_randomness',i+2,next_ship_time_randomness)
+    #print('enemy_fire_rate',1,enemy_fire_rate)
     for i in range(level_skills[5]):
-        enemy_fire_rate += (framerate*(1/10))
+        enemy_fire_rate += int(enemy_fire_rate/20)
+    #    print('enemy_fire_rate',i+2,enemy_fire_rate)
 
-    if current_level > framerate: # the level 60 clause
-        next_ship_time = next_ship_time_randomness
+    if current_level > (next_ship_time_randomness*framerate): # the level 60 clause
+        next_ship_time = 1
     else:
         next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((4*framerate)/current_level)) # [1 second, 4 seconds] decreases each level
     
@@ -403,8 +421,11 @@ all skills can range from level 1 to level 10, defaulting to level 1
     if curr_time == -1:
         initial_island_health = island_health
     
-    if current_level == 1 and curr_time == -1: # sets the kill count to 0 on day 1
-        kill_count = 0
+    #if current_level == 1 and curr_time == -1: # sets the kill count to 0 on day 1
+    #    kill_count = 0
+    #    pygame.mixer.music.play(-1)
+    #elif curr_time == -1:
+    #    pygame.mixer.music.unpause()
 
     while on_gameplay_screen:
         clock.tick(framerate)
@@ -469,7 +490,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
             new_ship = Ship(y_dist)
             ships.add(new_ship)
             active_sprites.add(new_ship, layer=-y_dist)
-            if current_level > framerate:
+            if current_level > (next_ship_time_randomness*framerate):
                 next_ship_time = 1
             else:
                 next_ship_time = random.randint(int((next_ship_time_randomness*framerate)/current_level), int((4*framerate)/current_level)) # set countdown for next ship
@@ -567,6 +588,8 @@ def next_level_loop(button_delay):
     QUIT = 1
     current_button_selected = NEXT_LEVEL
 
+    #pygame.mixer.music.pause()
+
     on_menu_screen = True
     while on_menu_screen:
         curr_time += 1
@@ -655,6 +678,8 @@ def game_over_loop(button_delay):
     PLAY_AGAIN = 0
     QUIT = 1
     current_button_selected = PLAY_AGAIN
+
+    #pygame.mixer.music.stop()
 
     on_game_over_screen = True
     while on_game_over_screen:
