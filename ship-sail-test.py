@@ -21,6 +21,16 @@ for i in range(1,7):
     for j in range(1,3):
         cloud_sprites.append(pygame.image.load("sprites/clouds/cloud" + str(i) + str(j) + ".png"))
 
+# load chest images
+
+chest_sprites = []
+for i in range(4):
+    anim = []
+    for j in range(11):
+        anim.append(pygame.image.load("chest_anims/chest_" + str(i+1) + "_anim/" + str(j+1) + ".png"))
+    chest_sprites.append(anim)
+chest_sprites[0].append(pygame.image.load("chest_anims/chest_1_anim/0.png"))
+
 def init_clouds():
     for i in range(35):
         new_cloud = Cloud(random.randint(0, WIDTH), random.randint(0, 300))
@@ -237,18 +247,22 @@ level_skills = [0,0,0,0,0,0]
 
 
 def title_loop(button_delay):
-    # this is probably too many global variables but if it works it works i guess
-    global run, game_state, load_open, cannon_anim, ship_sink_anim, ship_sink_anim_length
+    # this is probably too many global variables but if it works it works i guess -- it definitely is :D
+    global run, game_state, load_open, cannon_anim, ship_sink_anim, ship_sink_anim_length, chest_sprites, curr_time
 
     PLAY = 0
     QUIT = 1
     RAPIDFIRE = 2 # rapid fire mode sets all the 'level skills' to their max, including the firing cooldown
     SETTINGS = 3 # doesn't do anything yet, would maybe like to add a sound/music toggle
     current_button_selected = PLAY
+    prev_button_selected = -1
+    chest_anim_frames = [0,0,0,0]
 
     on_title_screen = True
     while on_title_screen:
+        clock.tick(framerate)
         button_delay -= 1
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on_title_screen = False
@@ -265,9 +279,11 @@ def title_loop(button_delay):
                         on_title_screen = False
                     elif current_button_selected == QUIT:
                         pygame.event.post(pygame.event.Event(pygame.QUIT)) 
-                elif event.key == pygame.K_DOWN and current_button_selected != 3:
+                elif event.key == pygame.K_RIGHT and current_button_selected != 3:
+                    prev_button_selected = current_button_selected
                     current_button_selected += 1
-                elif event.key == pygame.K_UP and current_button_selected != 0:
+                elif event.key == pygame.K_LEFT and current_button_selected != 0:
+                    prev_button_selected = current_button_selected
                     current_button_selected -= 1
     
         # draw stuff
@@ -334,6 +350,20 @@ def title_loop(button_delay):
                 if i == 7:
                     cannon_anim[i].append(pygame.image.load(dir_name + "/img_050" + ending))
 
+        curr_time += 1
+        
+        ship_rocking_adjust = 20*math.sin(curr_time / rocking_rate)     
+        curr_sky_color = day_sky_color
+        curr_water_color = day_water_color
+        pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
+        pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
+        curr_chest_image = chest_sprites[current_button_selected][chest_anim_frames[current_button_selected]]
+        if (chest_anim_frames[prev_button_selected] > 0):
+            curr_chest_image = chest_sprites[prev_button_selected][chest_anim_frames[prev_button_selected]]
+            chest_anim_frames[prev_button_selected] -= 1
+        elif chest_anim_frames[current_button_selected] < 10:
+            chest_anim_frames[current_button_selected] += 1
+        screen.blit(curr_chest_image, curr_chest_image.get_rect())
         
         play_text = font.render('PLAY', True, (255, 215, 0))
         quit_text = font.render('QUIT', True, (255, 215, 0))
@@ -343,7 +373,6 @@ def title_loop(button_delay):
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2-25)))
         screen.blit(rapid_text,rapid_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
         screen.blit(sett_text,sett_text.get_rect(center=(WIDTH/2,HEIGHT/2+325)))
-        
 
         pygame.display.flip() # update screen
 
