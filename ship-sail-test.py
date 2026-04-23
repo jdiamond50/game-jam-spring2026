@@ -128,7 +128,7 @@ class Ship(pygame.sprite.Sprite): # (x,y,z) = (left/right, near/far, up/down)
     
     def update(self, curr_time, game_time):
         self.pos += self.vel
-        if self.pos.x > 70 and (curr_time < game_time or game_state == GAME_OVER_SCREEN): # pause island ships
+        if self.pos.x > 70 and (curr_time - game_start_time < game_time or game_state == GAME_OVER_SCREEN): # pause island ships
             self.vel = pygame.math.Vector3(0,0,0)
         if self.pos.x < -2*self.pos.y: 
             self.kill()
@@ -232,6 +232,7 @@ kill_count = 0
 run = True
 game_state = TITLE_SCREEN
 curr_time = -1 # measured in num frames
+game_start_time = -1
 
 ship_deck_img = pygame.transform.scale(pygame.image.load("ship_deck.png"), (WIDTH, HEIGHT))
 # ship_deck_rect = ship_deck_img.get_rect(midbottom=(WIDTH/2, HEIGHT+100))
@@ -431,7 +432,7 @@ the speed at which new ships arrive would still always be increasing so they sho
 
 all skills can range from level 1 to level 10, defaulting to level 1
 """
-    global run, game_state, ships, current_level, kill_count, curr_time, next_cloud_time, level_skills, chest_sprites
+    global run, game_state, ships, current_level, kill_count, curr_time, next_cloud_time, level_skills, chest_sprites, game_start_time
 
     current_level += 1
 
@@ -446,7 +447,6 @@ all skills can range from level 1 to level 10, defaulting to level 1
 
     on_gameplay_screen = True
 
-    curr_time = -1
     curr_cooldown = 0
     cannon_is_avail = True
     cannon.ud_angle = math.pi / 4
@@ -473,11 +473,11 @@ all skills can range from level 1 to level 10, defaulting to level 1
     
     is_red_island = False # If the island is taking damage this tick
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
-    if curr_time == -1:
+    if game_start_time == -1:
         initial_island_health = island_health
-    
-    if current_level == 1 and curr_time == -1: # sets the kill count to 0 on day 1
-        kill_count = 0
+        if current_level == 1: kill_count = 0 # set kill count to 0 on day 1
+
+    game_start_time = curr_time
 
     while on_gameplay_screen:
         clock.tick(framerate)
@@ -491,7 +491,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
             cannon_is_avail = True
             curr_cooldown = 0
 
-        if curr_time == game_time: pygame.event.post(pygame.event.Event(NIGHTFALL))
+        if curr_time - game_start_time == game_time: pygame.event.post(pygame.event.Event(NIGHTFALL))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
@@ -537,7 +537,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
             cannon.lr_angle += math.pi / 180
             # print("cannon lr_angle adjusted to ", cannon.lr_angle)
         
-        if (next_ship_time == 0 and curr_time < game_time): # time to create another ship
+        if (next_ship_time == 0 and curr_time - game_start_time < game_time): # time to create another ship
             y_dist = random.randint(60,max_ship_distance)
             new_ship = Ship(y_dist)
             ships.add(new_ship)
@@ -559,7 +559,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
 
         ships.update(curr_time, game_time)
         cannonballs.update()
-        clouds.update(curr_time / game_time)
+        clouds.update((curr_time-game_start_time)/ game_time)
         cannon.update()
 
         for ship in ships:
@@ -596,9 +596,9 @@ all skills can range from level 1 to level 10, defaulting to level 1
 
         curr_sky_color = night_sky_color
         curr_water_color = night_water_color
-        if curr_time < game_time: 
-            curr_sky_color = get_color_gradient(day_sky_color, night_sky_color, curr_time / game_time)
-            curr_water_color = get_color_gradient(day_water_color, night_water_color, curr_time / game_time)
+        if curr_time-game_start_time < game_time: 
+            curr_sky_color = get_color_gradient(day_sky_color, night_sky_color, (curr_time-game_start_time) / game_time)
+            curr_water_color = get_color_gradient(day_water_color, night_water_color, (curr_time-game_start_time) / game_time)
         pygame.draw.rect(screen, curr_sky_color, (0,0,WIDTH, HEIGHT/2+ship_rocking_adjust))
         pygame.draw.rect(screen, curr_water_color, (0,HEIGHT/2+ship_rocking_adjust,WIDTH, HEIGHT/2))
 
