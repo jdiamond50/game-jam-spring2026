@@ -314,21 +314,21 @@ def title_loop(button_delay):
 
         # -- draw buttons -- 
         
-        # highlight currently selected button
-        if current_button_selected == PLAY:
-            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2-255, 810, 110)) # play button highlight
-        if current_button_selected == QUIT:
-            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2-80, 810, 110)) # quit button highlight
-        if current_button_selected == RAPIDFIRE:
-            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2+95, 810, 110)) # rapid button highlight
-        if current_button_selected == SETTINGS:
-            pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2+270, 810, 110)) # sett button highlight
+        # # highlight currently selected button
+        # if current_button_selected == PLAY:
+        #     pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2-255, 810, 110)) # play button highlight
+        # if current_button_selected == QUIT:
+        #     pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2-80, 810, 110)) # quit button highlight
+        # if current_button_selected == RAPIDFIRE:
+        #     pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2+95, 810, 110)) # rapid button highlight
+        # if current_button_selected == SETTINGS:
+        #     pygame.draw.rect(screen, (255,255,255), (WIDTH/2-405, HEIGHT/2+270, 810, 110)) # sett button highlight
 
-        # button background
-        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2-250, 800, 100)) # play button
-        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2-75, 800, 100)) # quit button
-        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+100, 800, 100)) # rapid button
-        pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+275, 800, 100)) # sett button
+        # # button background
+        # pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2-250, 800, 100)) # play button
+        # pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2-75, 800, 100)) # quit button
+        # pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+100, 800, 100)) # rapid button
+        # pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+275, 800, 100)) # sett button
 
         # button text
         font = pygame.font.Font('PirateJack-lglRX.otf',85) # Pirate Jack by font by Tigade Std
@@ -336,9 +336,9 @@ def title_loop(button_delay):
         if load_open == 0: # loading screen for loading the cannon images
             load_percent = 0
             loading_text = font.render('Loading', True, (255, 215, 0))
-            screen.blit(loading_text,loading_text.get_rect(center=(WIDTH/2,HEIGHT/2-200)))
+            screen.blit(loading_text,loading_text.get_rect(center=(WIDTH/2,HEIGHT/2-50)))
             percent_text = font.render(str(int(load_percent*10000)/100)+'%', True, (255, 215, 0))
-            screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
+            # screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+50)))
             pygame.display.flip()
             load_open += 1
             
@@ -346,10 +346,10 @@ def title_loop(button_delay):
                 ship_sink_anim.append(pygame.image.load('ship_animation/ship' + str(i) + ".png"))
                 
                 load_percent += 1/(60+17)
-                pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+100, 800, 100))
-                pygame.draw.rect(screen, island_color, (WIDTH/2-400, HEIGHT/2+100, 800*load_percent, 100))
+                pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2, 800, 100))
+                pygame.draw.rect(screen, island_color, (WIDTH/2-400, HEIGHT/2, 800*load_percent, 100))
                 percent_text = font.render(str(int(load_percent*10000)/100)+'%', True, (255, 215, 0))
-                screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
+                screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+50)))
                 pygame.display.flip()
 
             for i in range(17):
@@ -358,10 +358,10 @@ def title_loop(button_delay):
                 ending = ".png"
                 
                 load_percent += 1/(60+17)
-                pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2+100, 800, 100))
-                pygame.draw.rect(screen, island_color, (WIDTH/2-400, HEIGHT/2+100, 800*load_percent, 100))
+                pygame.draw.rect(screen, night_water_color, (WIDTH/2-400, HEIGHT/2, 800, 100))
+                pygame.draw.rect(screen, island_color, (WIDTH/2-400, HEIGHT/2, 800*load_percent, 100))
                 percent_text = font.render(str(int(load_percent*10000)/100)+'%', True, (255, 215, 0))
-                screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+150)))
+                screen.blit(percent_text,percent_text.get_rect(center=(WIDTH/2,HEIGHT/2+50)))
                 pygame.display.flip()
                 
                 for j in range(1, 49):
@@ -537,7 +537,7 @@ def settings_loop(button_delay):
 
         pygame.display.flip() # update screen
 
-def gameplay_loop(cannon_cooldown = (3/2)*framerate, game_time = 10*framerate, island_health = 36, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
+def gameplay_loop(cannon_cooldown = (3/2)*framerate, game_time = 60*framerate, island_health = 36, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
     """There are now 6 adjustable parameters for the gameplay_loop
 
 cannon_cooldown - is how often the cannon reloads
