@@ -79,7 +79,9 @@ class Cannonball(pygame.sprite.Sprite):
 
     def __init__(self, cannon):
         super().__init__()
-        self.original_image = pygame.image.load('sprites/cannonball.jpg')
+        # self.original_image = pygame.image.load('sprites/cannonball.jpg')
+        self.original_image = pygame.Surface((200, 200), pygame.SRCALPHA)
+        pygame.draw.circle(self.original_image, (0,0,0), (100,100), 100)
         rect = self.original_image.get_rect()
         self.aspect_ratio = rect.width / rect.height
         self.size = 100
@@ -714,7 +716,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
                 continue
             for cannonball in cannonballs:
                 diff_vec = cannonball.pos - ship.pos
-                if (diff_vec.magnitude() < 20):
+                if (diff_vec.magnitude() < 15):
                     ship_hit_data = {"cannonball": cannonball, "ship": ship}
                     pygame.event.post(pygame.event.Event(SHIP_HIT, ship_hit_data))
 
