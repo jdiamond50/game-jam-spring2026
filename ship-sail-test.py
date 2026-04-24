@@ -271,7 +271,7 @@ def title_loop(button_delay):
     SETTINGS = 3 
     button_pressed = -1
     current_button_selected = prev_button_selected
-    prev_button_selected = QUIT
+    prev_button_selected = -1
     chest_anim_frames = [0,0,0,0]
     if (current_button_selected == SETTINGS): chest_anim_frames[SETTINGS] = 10
     is_start_animation_playing = False
@@ -413,7 +413,7 @@ def title_loop(button_delay):
                 curr_chest_image = chest_sprites[current_button_selected][chest_anim_frames[current_button_selected]]
                 chest_anim_frames[current_button_selected] -= 1
                 curr_intro_anim_frame -= 0.5
-        elif (chest_anim_frames[prev_button_selected] > 0):
+        elif (not prev_button_selected == -1 and chest_anim_frames[prev_button_selected] > 0):
             curr_chest_image = chest_sprites[prev_button_selected][chest_anim_frames[prev_button_selected]]
             chest_anim_frames[prev_button_selected] -= 1
         elif chest_anim_frames[current_button_selected] < 10:
@@ -557,7 +557,7 @@ the speed at which new ships arrive would still always be increasing so they sho
 
 all skills can range from level 1 to level 10, defaulting to level 1
 """
-    global run, game_state, ships, current_level, kill_count, curr_time, next_cloud_time, level_skills, chest_sprites, game_start_time
+    global run, game_state, ships, current_level, kill_count, curr_time, next_cloud_time, level_skills, chest_sprites, game_start_time, prev_button_selected
 
     current_level += 1
 
@@ -569,6 +569,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
             active_sprites.remove(sprite)
             sprite.kill()
     cannonballs.empty()
+    prev_button_selected = 0 # play
 
     on_gameplay_screen = True
 
@@ -679,7 +680,7 @@ all skills can range from level 1 to level 10, defaulting to level 1
             # print("cannon lr_angle adjusted to ", cannon.lr_angle)
         
         if (next_ship_time == 0 and curr_time - game_start_time < game_time): # time to create another ship
-            y_dist = random.randint(60,max_ship_distance)
+            y_dist = random.randint(70,max_ship_distance)
             new_ship = Ship(y_dist)
             ships.add(new_ship)
             active_sprites.add(new_ship, layer=-y_dist)
