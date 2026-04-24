@@ -101,14 +101,14 @@ class Cannonball(pygame.sprite.Sprite):
         self.vel += self.acc
         active_sprites.change_layer(self, self.pos.y)
         # print("cannonball pos: ", self.pos)
-        if self.pos.z >= 0: 
+        if self.pos.z >= -5: 
             self.fired = True
         update_rect(self)
         # if self.pos.y <= 40:
         #     self.image.set_alpha(0)
         # else:
         #     self.image.set_alpha(255)
-        if self.pos.z < 0 and self.fired: # cannonball hits the water
+        if self.pos.z < -5 and self.fired: # cannonball hits the water
             pygame.mixer.Sound.play(sound_miss)
             self.kill()
 
@@ -537,7 +537,7 @@ def settings_loop(button_delay):
 
         pygame.display.flip() # update screen
 
-def gameplay_loop(cannon_cooldown = (3/2)*framerate, game_time = 60*framerate, island_health = 36, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
+def gameplay_loop(cannon_cooldown = (3/2)*framerate, game_time = 10*framerate, island_health = 36, max_ship_distance = 300, next_ship_time_randomness = 1, enemy_fire_rate = framerate):
     """There are now 6 adjustable parameters for the gameplay_loop
 
 cannon_cooldown - is how often the cannon reloads
@@ -609,9 +609,9 @@ all skills can range from level 1 to level 10, defaulting to level 1
     
     is_red_island = False # If the island is taking damage this tick
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
-    if game_start_time == -1:
-        initial_island_health = island_health
-        if current_level == 1: kill_count = 0 # set kill count to 0 on day 1
+    # if game_start_time == -1:
+    initial_island_health = island_health
+    if current_level == 1: kill_count = 0 # set kill count to 0 on day 1
 
     game_start_time = curr_time
 
