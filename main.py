@@ -595,6 +595,8 @@ all skills can range from level 1 to level 10, defaulting to level 1
     cannon_is_avail = True
     cannon.ud_angle = math.pi / 4
     cannon.lr_angle = 0.1
+    
+    pygame.mixer.music.unpause()
 
     #adjusts the initial parameter values based on the current 'skill level'
     for i in range(6):
@@ -825,6 +827,7 @@ def next_level_loop(button_delay):
                         game_state = GAMEPLAY_SCREEN
                         on_menu_screen = False
                     elif current_button_selected == QUIT:
+                        current_level = 0
                         pygame.event.post(pygame.event.Event(pygame.QUIT)) 
                 elif event.key == pygame.K_DOWN:
                     current_button_selected = QUIT
@@ -875,7 +878,7 @@ def next_level_loop(button_delay):
         pygame.draw.rect(screen, night_sky_color, (WIDTH/2-400, HEIGHT/2+100, 800, 200)) # quit button
 
         # button text
-        font = pygame.font.Font('PirateJack-lglRX.otf',175) # Pirate Jack by font by Tigade Std
+        font = pygame.font.Font('PirateJack-lglRX.otf',100) # Pirate Jack by font by Tigade Std
         if current_level == 10:
             play_text = font.render('CONTINUE ENDLESS', True, (255, 215, 0))
             
@@ -927,6 +930,7 @@ def game_over_loop(button_delay):
                         game_state = GAMEPLAY_SCREEN
                         on_game_over_screen = False
                     elif current_button_selected == QUIT:
+                        current_level = 0
                         pygame.event.post(pygame.event.Event(pygame.QUIT)) 
                 elif event.key == pygame.K_DOWN:
                     current_button_selected = QUIT
@@ -979,7 +983,7 @@ def game_over_loop(button_delay):
         pygame.draw.rect(screen, night_sky_color, (WIDTH/2-400, HEIGHT/2+100, 800, 200)) # quit button
 
         # button text
-        font = pygame.font.Font('PirateJack-lglRX.otf',175) # Pirate Jack by font by Tigade Std
+        font = pygame.font.Font('PirateJack-lglRX.otf',100) # Pirate Jack by font by Tigade Std
         play_text = font.render('PLAY AGAIN', True, (255, 215, 0))
         quit_text = font.render('QUIT TO MENU', True, (255, 215, 0))
         screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-145)))
