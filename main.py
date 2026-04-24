@@ -180,13 +180,15 @@ sound_miss = pygame.mixer.Sound("sound_files/splash.wav")
 sound_island_hurt = pygame.mixer.Sound("sound_files/smash.wav")
 sound_select = 0 # sounds to still be added
 sound_begin = 0
-sound_lose_game = 0
-sound_win_level = 0
+sound_lose_game = pygame.mixer.Sound("sound_files/loss.wav")
+sound_win_level = pygame.mixer.Sound("sound_files/win.wav")
 
-#pygame.mixer.music.load("sound_files/PiRat.wav")
+pygame.mixer.music.load("sound_files/musicPiRat.wav")
 
 sound_fire.set_volume(.3)
 sound_miss.set_volume(.3)
+sound_win_level.set_volume(1)
+sound_lose_game.set_volume(1)
 sound_island_hurt.set_volume(.6)
 sound_hit.set_volume(.6)
 
@@ -495,12 +497,18 @@ def settings_loop(button_delay):
                         volume_state[1] += 1
                         if volume_state[1] % 3 == 2:
                             msc_vol = "QUIET"
+                            sound_win_level.set_volume(.4)
+                            sound_lose_game.set_volume(.4)
                             pygame.mixer.music.set_volume(.4)
                         elif volume_state[1] % 3 == 0:
                             msc_vol = "OFF"
+                            sound_win_level.set_volume(0)
+                            sound_lose_game.set_volume(0)
                             pygame.mixer.music.set_volume(0)
                         else:
                             msc_vol = "NORMAL"
+                            sound_win_level.set_volume(1)
+                            sound_lose_game.set_volume(1)
                             pygame.mixer.music.set_volume(1)
                     elif current_button_selected == QUIT:
                         pygame.event.post(pygame.event.Event(pygame.QUIT)) 
@@ -537,7 +545,9 @@ def settings_loop(button_delay):
         play_text = font.render('RETURN TO MENU', True, (255, 215, 0))
         quit_text = font.render('SOUND EFFECTS = '+sfx_vol, True, (255, 215, 0))
         rapid_text = font.render('MUSIC = '+msc_vol, True, (255, 215, 0))
-        sett_text = font.render('QUIT', True, (255, 215, 0))
+
+        font = pygame.font.Font('PirateJack-lglRX.otf',40)
+        sett_text = font.render('Sound FX Credits Listed in Sound_Credits.txt', True, (255, 215, 0))
         
         screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-200)))
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2-25)))
@@ -621,7 +631,11 @@ all skills can range from level 1 to level 10, defaulting to level 1
     previous_island_health = island_health # A variable for tracking if the island lost any health in a tick
     # if game_start_time == -1:
     initial_island_health = island_health
-    if current_level == 1: kill_count = 0 # set kill count to 0 on day 1
+    if current_level == 1:
+        kill_count = 0 # set kill count to 0 on day 1
+        pygame.mixer.music.play(-1)
+    elif curr_time == -1:
+        pygame.mixer.music.unpause()
 
     game_start_time = curr_time
 
@@ -786,7 +800,8 @@ def next_level_loop(button_delay):
     QUIT = 1
     current_button_selected = NEXT_LEVEL
 
-    #pygame.mixer.music.pause()
+    pygame.mixer.music.pause()
+    pygame.mixer.Sound.play(sound_win_level)
 
     on_menu_screen = True
     while on_menu_screen:
@@ -796,7 +811,7 @@ def next_level_loop(button_delay):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on_menu_screen = False
-                run = False
+                game_state = TITLE_SCREEN
             if event.type == pygame.KEYDOWN and button_delay <= 0:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == NEXT_LEVEL:
@@ -857,13 +872,25 @@ def next_level_loop(button_delay):
 
         # button text
         font = pygame.font.Font('PirateJack-lglRX.otf',175) # Pirate Jack by font by Tigade Std
-        play_text = font.render('NEXT LEVEL', True, (255, 215, 0))
-        quit_text = font.render('QUIT', True, (255, 215, 0))
+        if current_level == 10:
+            play_text = font.render('CONTINUE ENDLESS', True, (255, 215, 0))
+            
+            level_text = font.render('Level '+str(current_level)+' Complete - VICTORY!', True, (255, 215, 0))
+            
+            kill_text = font.render(str(kill_count)+' Ships Sunk', True, (255, 215, 0))
+            screen.blit(kill_text,kill_text.get_rect(center=(WIDTH/2,(HEIGHT)-120)))
+        else:
+            level_text = font.render('Level '+str(current_level)+' Complete', True, (255, 215, 0))
+            
+            play_text = font.render('NEXT LEVEL', True, (255, 215, 0))
+            
+        quit_text = font.render('QUIT TO MENU', True, (255, 215, 0))
         screen.blit(play_text,play_text.get_rect(center=(WIDTH/2,HEIGHT/2-145)))
         screen.blit(quit_text,quit_text.get_rect(center=(WIDTH/2,HEIGHT/2+195)))
 
-        level_text = font.render('Level '+str(current_level)+' Complete', True, (255, 215, 0))
         screen.blit(level_text,level_text.get_rect(center=(WIDTH/2,120)))
+
+        
 
         pygame.display.flip() # update screen
 
@@ -877,7 +904,8 @@ def game_over_loop(button_delay):
     QUIT = 1
     current_button_selected = PLAY_AGAIN
 
-    #pygame.mixer.music.stop()
+    pygame.mixer.music.stop()
+    pygame.mixer.Sound.play(sound_lose_game)
 
     on_game_over_screen = True
     while on_game_over_screen:
