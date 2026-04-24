@@ -257,21 +257,23 @@ level_skills = [0,0,0,0,0,0]
     enemy_fire_rate : 5
 """
 
+prev_button_selected = 0 # play
 
 def title_loop(button_delay):
     # this is probably too many global variables but if it works it works i guess -- it definitely is :D
-    global run, game_state, load_open, cannon_anim, ship_sink_anim, ship_sink_anim_length, chest_sprites, curr_time, intro_anim, next_cloud_time
+    global run, game_state, load_open, cannon_anim, ship_sink_anim, ship_sink_anim_length, chest_sprites, curr_time, intro_anim, next_cloud_time, prev_button_selected
 
     PLAY = 0
     QUIT = 1
     RAPIDFIRE = 2 # rapid fire mode sets all the 'level skills' to their max, including the firing cooldown
     SETTINGS = 3 
-    current_button_selected = PLAY
-    prev_button_selected = -1
+    button_pressed = -1
+    current_button_selected = prev_button_selected
+    prev_button_selected = QUIT
     chest_anim_frames = [0,0,0,0]
+    if (current_button_selected == SETTINGS): chest_anim_frames[SETTINGS] = 10
     is_start_animation_playing = False
     curr_intro_anim_frame = 0
-    button_pressed = -1
     for sprite in active_sprites:
         if isinstance(sprite, Ship):
             active_sprites.remove(sprite)
@@ -288,7 +290,7 @@ def title_loop(button_delay):
             if event.type == pygame.QUIT:
                 on_title_screen = False
                 run = False
-            if event.type == pygame.KEYDOWN and button_delay <= 0:
+            if event.type == pygame.KEYDOWN and button_delay <= 0 and not is_start_animation_playing:
                 if event.key == pygame.K_SPACE:
                     if current_button_selected == PLAY:
                         button_pressed = PLAY
@@ -300,6 +302,7 @@ def title_loop(button_delay):
                         pygame.event.post(pygame.event.Event(pygame.QUIT)) 
                     elif current_button_selected == SETTINGS:
                         game_state = SETTINGS_SCREEN
+                        prev_button_selected = SETTINGS
                         on_title_screen = False
                 elif event.key == pygame.K_RIGHT and current_button_selected != 3:
                     prev_button_selected = current_button_selected
