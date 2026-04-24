@@ -436,6 +436,10 @@ def title_loop(button_delay):
             screen.blit(rapid_text,rapid_text.get_rect(center=(WIDTH/2+150,HEIGHT-100)))
             screen.blit(sett_text,sett_text.get_rect(center=(WIDTH/2+410,HEIGHT-100)))
 
+            title_text = font.render('SAVE THE ISLAND FROM PIRATES', True, (255, 215, 0))
+            screen.blit(title_text,title_text.get_rect(center=(WIDTH/2,100)))
+            
+
         pygame.display.flip() # update screen
 
 def settings_loop(button_delay):
